@@ -41,8 +41,7 @@ typedef enum EndServiceStatus_e
     END_SERVICE_UNKNOWN_ERROR,
 } EndServiceStatus_e;
 
-
-//Stolen from https://gist.github.com/ccbrown/9722406
+// Stolen from https://gist.github.com/ccbrown/9722406
 static void DumpHex(const void *data, size_t size)
 {
     char ascii[17];
@@ -98,7 +97,7 @@ ListenStatus_e listen_socket(MulticastSocket_t *sock, struct iovec span)
      */
 
     size_t bytes_to_clear = span.iov_len - readen_or_errno;
-    char *start_offset = span.iov_base + span.iov_len - bytes_to_clear;
+    char *start_offset = (char *)span.iov_base + span.iov_len - bytes_to_clear;
     memset(start_offset, 0, bytes_to_clear);
 
     /*
@@ -118,10 +117,11 @@ ListenStatus_e listen_socket(MulticastSocket_t *sock, struct iovec span)
 
 void handle_sigterm(int signo)
 {
+    (void)signo;
     process_terminate_requested = true;
 }
 
-int main()
+int main(void)
 {
     bool listen_loop_enabled = true;
     EndServiceStatus_e end_service_status = END_SERVICE_OK;

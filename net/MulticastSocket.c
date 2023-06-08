@@ -71,7 +71,6 @@ bool multicast_socket_bind_to(MulticastSocket_t *multicast_socket, in_addr_t bin
         (char *)&multicast_socket->multcst_req,
         sizeof(multicast_socket->multcst_req));
 
-    int err = errno;
 
     if (subscribe_status != 0) {
         memset(&multicast_socket->multcst_req, 0, sizeof(multicast_socket->multcst_req));
