@@ -1,0 +1,39 @@
+IndentWidth: 4
+PPIndentWidth: 2
+
+ColumnLimit: 100
+
+
+BreakBeforeBraces: Custom
+BraceWrapping: 
+  AfterFunction: true
+  AfterEnum: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterControlStatement: Never
+
+
+IndentAccessModifiers: false
+AccessModifierOffset: -4 # should be equal to -IndentWidth 
+
+PointerAlignment: Right
+
+AlignAfterOpenBracket: DontAlign
+
+AllowAllArgumentsOnNextLine: false
+
+BinPackArguments: false
+
+AllowShortFunctionsOnASingleLine: false
+AlignOperands: true
+AllowShortLambdasOnASingleLine: true
+BreakBeforeBinaryOperators: None
+BreakBeforeConceptDeclarations: Always
+AlignConsecutiveMacros: true
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+
+AllowShortCaseLabelsOnASingleLine: false
+

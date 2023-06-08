@@ -1,0 +1,35 @@
+#pragma once
+
+#include <bits/types/struct_iovec.h>
+#include <netinet/in.h>
+#include <stdbool.h>
+
+typedef struct MulticastSocket_t
+{
+    int socket_fd;
+    struct ip_mreq multcst_req;
+    struct sockaddr_in bind_point;
+} MulticastSocket_t;
+
+bool multicast_socket_create(MulticastSocket_t *multicast_socket);
+
+/*
+ * bind_point is the net interface addres to send IGMP subscribe packet
+ */
+bool multicast_socket_bind_to(MulticastSocket_t *multicast_socket, in_addr_t bind_point,
+    uint16_t bind_port, in_addr_t multicast_group);
+
+/*
+ * calls multicast_socket_bind_to() with ANY interface 
+ * multicast traffic from 2 or more interfaces will be merged
+ */
+bool multicast_socket_bind_to_any(MulticastSocket_t *multicast_socket, uint16_t bind_port,
+    in_addr_t multicast_group);
+
+/*
+ * can return -errno
+ */
+ssize_t multicast_socket_recv(MulticastSocket_t *sock, struct iovec span);
+
+void multicast_socket_close(MulticastSocket_t *socket);
+
