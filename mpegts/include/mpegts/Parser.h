@@ -6,8 +6,6 @@
 
 #include <mpegts/Packet.h>
 
-#define MPEG_TS_PID_FIELD_SIZE 13
-#define MPEG_TS_SYNC_BYTE      0x47
 
 typedef struct MpegTsParser_t
 {
@@ -62,3 +60,9 @@ bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
  *
  */
 bool mpeg_ts_parser_sync(MpegTsParser_t *parser);
+
+
+/*
+ * Extract header from synced parse buffer without dropping
+ */
+MpegTsPacketHeaderMaybe_t mpeg_ts_parse_packet_header(MpegTsParser_t *parser);
