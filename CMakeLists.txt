@@ -8,7 +8,4 @@ add_compile_options("-Wall" "-Wextra" "-Werror" "-pedantic")
 add_subdirectory(net)
 add_subdirectory(mpegts)
 
-
-add_executable(StreamDumper StreamDumper.c)
-
-target_link_libraries(StreamDumper PRIVATE MulticastSocket)
+add_subdirectory(tools)

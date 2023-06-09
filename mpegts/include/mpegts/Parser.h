@@ -4,8 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <mpegts/Packet.h>
-
+#include "mpegts/Packet.h"
 
 typedef struct MpegTsParser_t
 {
@@ -20,13 +19,20 @@ typedef struct MpegTsParser_t
 
 } MpegTsParser_t;
 
-bool mpeg_ts_init_parser_ex(MpegTsParser_t *parser, uint8_t *parse_buffer, size_t parse_buffer_size,
+
+/*
+ * verbose init with user defined memory buffers
+ *
+ * responsibility for memory deallocation remains with the user
+ */
+bool mpeg_ts_parser_init_ex(MpegTsParser_t *parser, uint8_t *parse_buffer, size_t parse_buffer_size,
     MpegTsPacket_t **parsed_packets_pointer_array_location,
     size_t parsed_packets_pointer_array_size);
 
-size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, char *buffer, size_t buffer_size);
 
-bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
+size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, char *source_buffer, size_t buffer_size);
+
+static inline bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
 {
     return parser->parse_buffer[0] == MPEG_TS_SYNC_BYTE;
 }
@@ -37,32 +43,46 @@ bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
  * Example: (assuming MPEG_TS_SYNC_BYTE is 0x47)
  *
  * Before sync:
- * +----------------------------------------------------------------+
- * |                      parser->parse_buffer                      |
- * +----+----+----+----+----+----+----+----+----+----+----+----+----+
- * | 00 | 01 | 02 | 03 | 04 | 05 | 47 | 05 | 04 | 03 | 02 | 01 | 00 |
- * +----+----+----+----+----+----+----+----+----+----+----+----+----+
+ * +---------------------------------------------------------------------+
+ * |                          parser->parse_buffer                       |
+ * +----+----+----+----+----+----+----+----+----+----+----+----+----+-----
+ * | 00 | 01 | 02 | 03 | 04 | 05 | 47 | 05 | 04 | 03 | 02 | 01 | 00 | ff |
+ * +----+----+----+----+----+----+----+----+----+----+----+----+----+----+
  *                                 ^^ - sync_byte                ^^ - parser->parse_data_put_offset
  *
  *
  * After sync:
- * +----------------------------------------------------------------+
- * |                      parser->parse_buffer                      |
- * +----+----+----+----+----+----+----+----+----+----+----+----+----+
- * | 47 | 05 | 04 | 03 | 02 | 01 | 00 | 00 | 00 | 00 | 00 | 00 | 00 |
- * +----+----+----+----+----+----+----+----+----+----+----+----+----+
+ * +---------------------------------------------------------------------+
+ * |                          parser->parse_buffer                       |
+ * +----+----+----+----+----+----+----+----+----+----+----+----+----+-----
+ * | 47 | 05 | 04 | 03 | 02 | 01 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | ff |
+ * +----+----+----+----+----+----+----+----+----+----+----+----+----+----+
  *   ^^ - sync_byte                ^^ - parser->parse_data_put_offset
  *
  *
  * @return false if:
- *     1. mpeg_ts_parser_check_sync(parser) == true
+ *     1. mpeg_ts_parser_is_synced(parser) == true
  *     2. no sync byte was found
+ *     3. first sync byte comes after parser->parse_data_put_offset
  *
  */
 bool mpeg_ts_parser_sync(MpegTsParser_t *parser);
 
 
+bool mpeg_ts_parser_drop_packet(MpegTsParser_t *parser);
+
+
 /*
  * Extract header from synced parse buffer without dropping
  */
-MpegTsPacketHeaderMaybe_t mpeg_ts_parse_packet_header(MpegTsParser_t *parser);
+MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser);
+
+MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser);
+
+
+
+/*
+ * Interface for memory responsible parser initialyser
+ */
+bool mpeg_ts_parser_init(MpegTsParser_t *parser);
+void mpeg_ts_parser_free(MpegTsParser_t *parser);

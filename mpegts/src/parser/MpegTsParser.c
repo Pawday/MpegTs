@@ -1,48 +1,53 @@
 #include <assert.h>
 #include <limits.h>
-#include <netinet/in.h>
-#include <string.h>
+#include <memory.h>
 
-#include "mpegts/Magics.h"
-#include "mpegts/Packet.h"
 #include "mpegts/Parser.h"
 
-#define MPEG_TS_PARSE_BUFFER_MIN_MULTIPLIER 2
 
-// TODO: Deal with parse_put_offset
-bool mpeg_ts_init_parser_ex(MpegTsParser_t *parser, uint8_t *parse_buffer, size_t parse_buffer_size,
-    MpegTsPacket_t **parsed_packets_pointer_array_location,
-    size_t parsed_packets_pointer_array_size)
+static size_t mpeg_ts_parser_get_free_space(MpegTsParser_t *parser)
 {
-    if (parser == NULL || parse_buffer == NULL || parsed_packets_pointer_array_location == NULL ||
-        parse_buffer_size == 0 || parsed_packets_pointer_array_size == 0) {
-        return false;
+    if (parser->parse_data_put_offset >= parser->parse_buffer_size) {
+        assert(parser->parse_data_put_offset == parser->parse_buffer_size &&
+               "Someone taintet buffer state");
+        return 0;
     }
 
-    if (parse_buffer_size < MPEG_TS_PACKET_SIZE * MPEG_TS_PARSE_BUFFER_MIN_MULTIPLIER) {
-        return false;
+    return parser->parse_buffer_size - parser->parse_data_put_offset;
+}
+
+size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, char *restrict source_buffer,
+    size_t buffer_size)
+{
+    size_t free_space = mpeg_ts_parser_get_free_space(parser);
+    assert(parser->parse_data_put_offset + free_space == parser->parse_buffer_size);
+
+    if (free_space == 0) {
+        return 0;
     }
 
-    parser->parse_buffer = parse_buffer;
-    parser->parse_buffer_size = parse_buffer_size;
+    size_t bytes_to_send = buffer_size;
 
-    parser->parsed_packets = parsed_packets_pointer_array_location;
-    parser->parsed_packets_size = parsed_packets_pointer_array_size;
+    if (bytes_to_send > free_space) {
+        bytes_to_send = free_space;
+    }
 
-    parser->next_get_packet_index = 0;
-    parser->next_put_packet_index = 0;
+    memcpy(parser->parse_buffer + parser->parse_data_put_offset, source_buffer, bytes_to_send);
 
-    parser->parse_data_put_offset = 0;
+    parser->parse_data_put_offset += bytes_to_send;
 
-    memset(parser->parse_buffer, 0, parser->parse_buffer_size);
+    if (bytes_to_send == free_space) {
+        assert(parser->parse_data_put_offset == parser->parse_buffer_size);
+        assert(mpeg_ts_parser_get_free_space(parser) == 0);
+    }
 
-    return true;
+    return bytes_to_send;
 }
 
 /*
  * @return 0 if not found or sync byte at 0
  */
-static size_t find_first_sync_byte_location(MpegTsParser_t *parser)
+static size_t mpeg_ts_parser_find_first_sync_byte_location(MpegTsParser_t *parser)
 {
     size_t current_sync_byte_location = 0;
 
@@ -60,17 +65,21 @@ bool mpeg_ts_parser_sync(MpegTsParser_t *parser)
         return false;
     }
 
-    size_t sync_byte_pos = find_first_sync_byte_location(parser);
+    size_t sync_byte_pos = mpeg_ts_parser_find_first_sync_byte_location(parser);
 
     if (sync_byte_pos == 0) {
         return false;
     }
 
-    if (parser->parse_buffer_size <= sync_byte_pos) {
-        assert(true && "sync_byte_pos outside parser->parse_buffer_size");
+    if (sync_byte_pos > parser->parse_data_put_offset) {
+        return false;
     }
 
-    size_t bytes_to_move = parser->parse_buffer_size - sync_byte_pos;
+    if (parser->parse_buffer_size <= sync_byte_pos) {
+        assert(true && "sync_byte_pos outside parser->parse_buffer");
+    }
+
+    size_t bytes_to_move = parser->parse_data_put_offset - sync_byte_pos;
 
     memmove(parser->parse_buffer, parser->parse_buffer + sync_byte_pos, bytes_to_move);
     memset(parser->parse_buffer + bytes_to_move, 0, sync_byte_pos);
@@ -80,22 +89,44 @@ bool mpeg_ts_parser_sync(MpegTsParser_t *parser)
     return true;
 }
 
-MpegTsPacketHeaderMaybe_t mpeg_ts_parse_packet_header(MpegTsParser_t *parser)
+bool mpeg_ts_parser_drop_packet(MpegTsParser_t *parser)
+{
+    if (!mpeg_ts_parser_is_synced(parser)) {
+        return false;
+    }
+
+    if (parser->parse_data_put_offset < MPEG_TS_PACKET_SIZE) {
+        return false;
+    }
+
+    memmove(parser->parse_buffer,
+        parser->parse_buffer + MPEG_TS_PACKET_SIZE,
+        parser->parse_buffer_size - MPEG_TS_PACKET_SIZE);
+
+    parser->parse_data_put_offset -= MPEG_TS_PACKET_SIZE;
+
+    return true;
+}
+
+MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser)
 {
     MpegTsPacketHeaderMaybe_t ret_val;
-
     ret_val.has_balue = false;
 
     if (!mpeg_ts_parser_is_synced(parser)) {
         return ret_val;
     }
 
+#if MPEG_TS_PACKET_HEADER_SIZE != 4
+#error This function rely on MPEG_TS_PACKET_HEADER_SIZE == 4
+#endif
+
     uint8_t header_data_copy[MPEG_TS_PACKET_HEADER_SIZE];
 
     memcpy(header_data_copy, parser->parse_buffer, MPEG_TS_PACKET_HEADER_SIZE);
 
     if (header_data_copy[0] != MPEG_TS_SYNC_BYTE) {
-        assert(true && "[MPEGTS PARSER]: First byte is not a sync byte");
+        assert(true && "First byte is not a sync byte");
         return ret_val;
     }
 
@@ -137,7 +168,6 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parse_packet_header(MpegTsParser_t *parser)
     ret_val.value.scrambling_control = 0;
     ret_val.value.adaptation_field_control = 0;
 
-
     ret_val.value.scrambling_control |=
         (header_data_copy[3] & MPEG_TS_HEADER_FLAGS_SCRAMBLING_CONTROL_MASK) >>
         (CHAR_BIT - MPEG_TS_SCRAMBLING_CONTROL_SIZE_BITS);
@@ -150,3 +180,27 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parse_packet_header(MpegTsParser_t *parser)
     return ret_val;
 }
 
+MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser)
+{
+    MpegTsPacketMaybe_t ret_val;
+    ret_val.has_value = false;
+
+    if (!mpeg_ts_parser_is_synced(parser)) {
+        return ret_val;
+    }
+
+    MpegTsPacketHeaderMaybe_t header_mb = mpeg_ts_parser_parse_packet_header(parser);
+
+    if (!header_mb.has_balue) {
+        return ret_val;
+    }
+
+    ret_val.value.header = header_mb.value;
+
+    memcpy(ret_val.value.data,
+        parser->parse_buffer + MPEG_TS_PACKET_HEADER_SIZE,
+        MPEG_TS_PACKET_PAYLOAD_SIZE);
+
+    ret_val.has_value = true;
+    return ret_val;
+}
