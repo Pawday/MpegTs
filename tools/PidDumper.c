@@ -47,6 +47,7 @@ int main(void)
     struct sigaction term_action;
     term_action.sa_handler = handle_sigterm;
     sigaction(SIGTERM, &term_action, NULL);
+    signal(SIGINT, handle_sigterm);
 
     MulticastSocket_t msock;
     bool multicast_setup_status = multicast_socket_create(&msock);

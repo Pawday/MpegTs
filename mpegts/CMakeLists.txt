@@ -8,6 +8,7 @@ target_sources(MpegTS PRIVATE
 	src/parser/MpegTsParser.c
 	src/parser/MpegTsParserInitEx.c
 	src/parser/MpegTsParserInitStd.c
+	src/parser/MpegTsParserParseBuff.c
 	)
 
 

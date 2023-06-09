@@ -129,6 +129,7 @@ int main(void)
     struct sigaction term_action;
     term_action.sa_handler = handle_sigterm;
     sigaction(SIGTERM, &term_action, NULL);
+    signal(SIGINT, handle_sigterm);
 
     char recv_buffer[RECV_BUFFER_SIZE + 1];
     memset(recv_buffer, 0, RECV_BUFFER_SIZE + 1);
@@ -209,9 +210,13 @@ int main(void)
         printf("\n[INFO] Terminating normaly\n");
         return 0;
     case END_SERVICE_FAIL_SETUP:
+        printf("[Error] Fail setup\n");
+        return -1;
     case END_SERVICE_UNKNOWN_ERROR:
     default:
+        printf("[Error] Unknown error\n");
         return -1;
     }
+
 }
 

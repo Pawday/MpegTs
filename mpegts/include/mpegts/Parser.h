@@ -14,7 +14,6 @@ typedef struct MpegTsParser_t
 
     MpegTsPacket_t **parsed_packets;
     size_t parsed_packets_size;
-    size_t next_get_packet_index;
     size_t next_put_packet_index;
 
 } MpegTsParser_t;
@@ -69,17 +68,42 @@ static inline bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
 bool mpeg_ts_parser_sync(MpegTsParser_t *parser);
 
 
+/*
+ * Drop single packet from parse buffer begining
+ * return false when:
+ *     1. No packet at the begining (parser not synced)
+ *     2. Packet not formed (not enougth data)
+ */
 bool mpeg_ts_parser_drop_packet(MpegTsParser_t *parser);
-
 
 /*
  * Extract header from synced parse buffer without dropping
  */
 MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser);
 
+/*
+ * Parse packet from parse buffer without dropping data from it
+ */
 MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser);
 
 
+/*
+ * Will parse packet and perform drop
+ */
+MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser);
+
+
+size_t mpeg_ts_parser_get_free_space_in_parsed_pakets(MpegTsParser_t *parser);
+
+
+/*
+ * Will perform mpeg_ts_parser_parse_packet_with_drop() to internal packet storage until
+ *     1. Source buffer end up
+ *     2. Packet storage end up
+ *
+ *     @return amount of sucsessfullu parsed packets
+ */
+size_t mpeg_ts_parser_parse_many(MpegTsParser_t *parser);
 
 /*
  * Interface for memory responsible parser initialyser
