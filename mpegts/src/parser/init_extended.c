@@ -21,11 +21,12 @@ bool mpeg_ts_parser_init_ex(MpegTsParser_t *parser, uint8_t *parse_buffer, size_
     parser->parse_buffer_size = parse_buffer_size;
 
     parser->parsed_packets = parsed_packets_pointer_array_location;
-    parser->parsed_packets_size = parsed_packets_pointer_array_size;
+    parser->parsed_packets_capacity = parsed_packets_pointer_array_size;
 
-    parser->next_put_packet_index = 0;
+    parser->put_parsed_packet_index = 0;
 
     parser->parse_data_put_offset = 0;
+    parser->get_parsed_packet_index = 0;
 
     memset(parser->parse_buffer, 0, parser->parse_buffer_size);
 

@@ -13,11 +13,11 @@ typedef struct MpegTsParser_t
     size_t parse_data_put_offset;
 
     MpegTsPacket_t **parsed_packets;
-    size_t parsed_packets_size;
-    size_t next_put_packet_index;
+    size_t parsed_packets_capacity;
+    size_t put_parsed_packet_index;
+    size_t get_parsed_packet_index;
 
 } MpegTsParser_t;
-
 
 /*
  * verbose init with user defined memory buffers
@@ -27,7 +27,6 @@ typedef struct MpegTsParser_t
 bool mpeg_ts_parser_init_ex(MpegTsParser_t *parser, uint8_t *parse_buffer, size_t parse_buffer_size,
     MpegTsPacket_t **parsed_packets_pointer_array_location,
     size_t parsed_packets_pointer_array_size);
-
 
 size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, char *source_buffer, size_t buffer_size);
 
@@ -67,7 +66,6 @@ static inline bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
  */
 bool mpeg_ts_parser_sync(MpegTsParser_t *parser);
 
-
 /*
  * Drop single packet from parse buffer begining
  * return false when:
@@ -86,24 +84,36 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
  */
 MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser);
 
-
 /*
  * Will parse packet and perform drop
  */
 MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser);
-
-
-size_t mpeg_ts_parser_get_free_space_in_parsed_pakets(MpegTsParser_t *parser);
-
 
 /*
  * Will perform mpeg_ts_parser_parse_packet_with_drop() to internal packet storage until
  *     1. Source buffer end up
  *     2. Packet storage end up
  *
- *     @return amount of sucsessfullu parsed packets
+ *     @return amount of sucsessfully parsed packets
  */
 size_t mpeg_ts_parser_parse_many(MpegTsParser_t *parser);
+
+/*
+ * @return pointer to parsed packet or NULL if there is no new packets
+ * you MUST NOT:
+ *    1. free the packet
+ *        packet_ptr = next_parsed_packet(parser)'
+ *        ...
+ *        free(packet_ptr); // DONT DO IT
+ *
+ *    2. use packet after ANY parser functions
+ *        packet_ptr = next_parsed_packet(parser);
+ *        *packet_ptr //OK
+ *        ...
+ *        mpeg_ts_parser_SOME_ORERATION(parser);
+ *        *packet_ptr;  //DONT DO IT AFTER ABOVE CALL
+ */
+MpegTsPacket_t *mpeg_ts_parser_next_parsed_packet(MpegTsParser_t *parser);
 
 /*
  * Interface for memory responsible parser initialyser

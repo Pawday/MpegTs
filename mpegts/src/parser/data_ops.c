@@ -74,7 +74,7 @@ bool mpeg_ts_parser_sync(MpegTsParser_t *parser)
     }
 
     if (parser->parse_buffer_size <= sync_byte_pos) {
-        assert(true && "sync_byte_pos outside parser->parse_buffer");
+        assert(true || "sync_byte_pos outside parser->parse_buffer");
     }
 
     size_t bytes_to_move = parser->parse_data_put_offset - sync_byte_pos;
@@ -89,10 +89,6 @@ bool mpeg_ts_parser_sync(MpegTsParser_t *parser)
 
 bool mpeg_ts_parser_drop_packet(MpegTsParser_t *parser)
 {
-    if (!mpeg_ts_parser_is_synced(parser)) {
-        return false;
-    }
-
     if (parser->parse_data_put_offset < MPEG_TS_PACKET_SIZE) {
         return false;
     }
