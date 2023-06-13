@@ -5,10 +5,10 @@ add_library(MpegTS OBJECT)
 
 
 target_sources(MpegTS PRIVATE
-	src/parser/MpegTsParser.c
-	src/parser/MpegTsParserInitEx.c
-	src/parser/MpegTsParserInitStd.c
-	src/parser/MpegTsParserParseBuff.c
+	src/parser/init_extended.c
+	src/parser/init_with_stdlib.c
+	src/parser/data_ops.c
+	src/parser/parse_ops.c
 	)
 
 
