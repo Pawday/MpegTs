@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "mpegts/Magics.h"
+#include "magics.h"
 
 typedef struct MpegTsPacketHeader_t
 {

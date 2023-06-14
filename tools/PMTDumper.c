@@ -1,11 +1,8 @@
-#include "mpegts/Magics.h"
 #include <arpa/inet.h>
 #include <assert.h>
 #include <bits/types/struct_iovec.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <mpegts/Parser.h>
-#include <net/MulticastSocket.h>
 #include <netinet/in.h>
 #include <sched.h>
 #include <signal.h>
@@ -19,6 +16,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <net/MulticastSocket.h>
+
+#include <mpeg/ts/magics.h>
+#include <mpeg/ts/parser.h>
+
 #define MULTICAST_GROUP_CSTR               "239.0.0.10"
 #define MULTICAST_GROUP_PORT               (uint16_t)1234
 #define TIMEOUT_SCHED_SWITCH_REQUEST_BOUND (uint8_t)20
@@ -28,8 +30,6 @@
 bool process_terminate_requested = false;
 
 // Stolen from https://gist.github.com/ccbrown/9722406
-
-#if 0
 static void DumpHex(const void *data, size_t size)
 {
     char ascii[17];
@@ -59,7 +59,6 @@ static void DumpHex(const void *data, size_t size)
         }
     }
 }
-#endif
 
 typedef enum EndServiceStatus_e
 {
@@ -94,6 +93,8 @@ char *parse_status_to_string(PerformParseStatus_e status)
         return "PARSE_NO_MEM_ERROR";
     case PARSE_DATA_FORMAT_ERROR:
         return "PARSE_DATA_FORMAT_ERROR";
+    case PARSE_NO_DATA:
+        return "PARSE_NO_DATA";
     default:
         assert(true || "unmapped internal error, please map it in parse_status_to_string()");
         return "UNKNOWN";
@@ -109,8 +110,8 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         return PARSE_NET_ERROR;
     }
 
-    //printf("Data \n");
-    //DumpHex(transfer_buffer.iov_base, bytes_recvd_or_err);
+    // printf("Data \n");
+    // DumpHex(transfer_buffer.iov_base, bytes_recvd_or_err);
 
     if (bytes_recvd_or_err < 0) {
 
@@ -123,11 +124,12 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
 
     size_t bytes_recvd = bytes_recvd_or_err;
 
-    //size_t bytes_sent_to_parser =
-        mpeg_ts_parser_send_data(parser, transfer_buffer.iov_base, bytes_recvd);
+    // size_t bytes_sent_to_parser =
+    mpeg_ts_parser_send_data(parser, transfer_buffer.iov_base, bytes_recvd);
 
-    //printf("Data in parser: \n");
-    //DumpHex(parser->parse_buffer + parser->parse_data_put_offset - MPEG_TS_PACKET_SIZE, bytes_sent_to_parser);
+    // printf("Data in parser: \n");
+    // DumpHex(parser->parse_buffer + parser->parse_data_put_offset - MPEG_TS_PACKET_SIZE,
+    // bytes_sent_to_parser);
 
     bool sync_status = mpeg_ts_parser_sync(parser);
 
@@ -135,21 +137,47 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         return PARSE_DATA_FORMAT_ERROR;
     }
 
-    size_t parsed = mpeg_ts_parser_parse_many(parser);
+    size_t packets_parsed = mpeg_ts_parser_parse_many(parser);
 
-    MpegTsPacket_t *packet = mpeg_ts_parser_next_parsed_packet(parser);
-
-    if (packet == NULL) {
-        if (parsed == 0) {
-            return PARSE_NO_DATA;
-        }
-
-        return PARSE_DATA_FORMAT_ERROR;
+    if (packets_parsed == 0) {
+        return PARSE_NO_DATA;
     }
 
-    printf("Packet PID: 0x%" PRIx16 " %" PRIu16 "\n",
-        packet->header.pid,
-        packet->header.continuity_counter);
+    for (size_t parsed_packet_index = 0; parsed_packet_index < packets_parsed;
+         parsed_packet_index++) {
+
+        MpegTsPacket_t *packet = mpeg_ts_parser_next_parsed_packet(parser);
+
+        if (packet->header.pid == MPEG_TS_NULL_PACKET_PID) {
+            continue;
+        }
+
+        if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_ONLY) {
+            continue;
+        }
+
+        if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_WITH_PAYLOAD) {
+            continue;
+        }
+
+        if (!packet->header.payload_unit_start_indicator) {
+            continue;
+        }
+
+        printf("Packet PID: 0x%04" PRIx16 " | "
+               "Error: %" PRIx8 " | "
+               "Payload: %" PRIx8 " | "
+               "Priority %" PRIx8 " | "
+               "CC: %2" PRIu16 " | "
+               "\n",
+            packet->header.pid,
+            packet->header.error_indicator,
+            packet->header.payload_unit_start_indicator,
+            packet->header.transport_priority,
+            packet->header.continuity_counter);
+
+        DumpHex(packet->data, MPEG_TS_PACKET_PAYLOAD_SIZE);
+    }
 
     return PARSE_OK;
 }
@@ -221,6 +249,7 @@ int main(void)
         switch (last_parse_status) {
 
         case PARSE_OK:
+        case PARSE_NO_DATA:
             continue;
         case PARSE_NET_TIMEOUT:
             timeout_err_counter++;

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <memory.h>
 
-#include "mpegts/Parser.h"
+#include <mpeg/ts/parser.h>
 
 static size_t mpeg_ts_parser_get_free_space(MpegTsParser_t *parser)
 {
@@ -14,7 +14,7 @@ static size_t mpeg_ts_parser_get_free_space(MpegTsParser_t *parser)
     return parser->parse_buffer_size - parser->parse_data_put_offset;
 }
 
-size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, char *restrict source_buffer,
+size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, const char *restrict source_buffer,
     size_t buffer_size)
 {
     size_t free_space = mpeg_ts_parser_get_free_space(parser);

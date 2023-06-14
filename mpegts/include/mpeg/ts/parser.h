@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "mpegts/Packet.h"
+#include "packet.h"
 
 typedef struct MpegTsParser_t
 {
@@ -28,7 +28,7 @@ bool mpeg_ts_parser_init_ex(MpegTsParser_t *parser, uint8_t *parse_buffer, size_
     MpegTsPacket_t **parsed_packets_pointer_array_location,
     size_t parsed_packets_pointer_array_size);
 
-size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, char *source_buffer, size_t buffer_size);
+size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, const char * restrict source_buffer, size_t buffer_size);
 
 static inline bool mpeg_ts_parser_is_synced(MpegTsParser_t *parser)
 {

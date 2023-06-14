@@ -21,7 +21,7 @@
 #define MULTICAST_GROUP_PORT               (uint16_t)1234
 #define TIMEOUT_SCHED_SWITCH_REQUEST_BOUND (uint8_t)20
 #define RECV_TIMOUT_SECONDS                2
-#define RECV_BUFFER_SIZE                   1024
+#define RECV_BUFFER_SIZE                   2048
 
 bool process_terminate_requested = false;
 

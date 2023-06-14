@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
-#include "mpegts/Packet.h"
-#include "mpegts/Parser.h"
+#include <mpeg/ts/packet.h>
+#include <mpeg/ts/parser.h>
 
 #define PARSER_BUFFER_SIZE        4096
 #define PARSER_PACKETS_ARRAY_SIZE 10
