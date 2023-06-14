@@ -21,7 +21,8 @@
 #include <mpeg/ts/magics.h>
 #include <mpeg/ts/parser.h>
 
-#define MULTICAST_GROUP_CSTR               "239.0.0.10"
+//#define MULTICAST_GROUP_CSTR               "239.0.0.10"
+#define MULTICAST_GROUP_CSTR               "239.255.2.114" // Местный ТНТ
 #define MULTICAST_GROUP_PORT               (uint16_t)1234
 #define TIMEOUT_SCHED_SWITCH_REQUEST_BOUND (uint8_t)20
 #define RECV_TIMOUT_SECONDS                2
@@ -166,7 +167,7 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
 
         printf("Packet PID: 0x%04" PRIx16 " | "
                "Error: %" PRIx8 " | "
-               "Payload: %" PRIx8 " | "
+               "Unit Start: %" PRIx8 " | "
                "Priority %" PRIx8 " | "
                "CC: %2" PRIu16 " | "
                "\n",

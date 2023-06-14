@@ -9,6 +9,7 @@ target_sources(MpegTS PRIVATE
 	src/parser/init_with_stdlib.c
 	src/parser/data_ops.c
 	src/parser/parse_ops.c
+	src/psi/parser.c
 	)
 
 
