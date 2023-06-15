@@ -1,3 +1,4 @@
+#include "mpeg/ts/data/psi/psi_magics.h"
 #include <arpa/inet.h>
 #include <assert.h>
 #include <bits/types/struct_iovec.h>
@@ -18,10 +19,10 @@
 
 #include <net/MulticastSocket.h>
 
-#include <mpeg/ts/magics.h>
+#include <mpeg/ts/mpeg_ts_magics.h>
 #include <mpeg/ts/parser.h>
 
-//#define MULTICAST_GROUP_CSTR               "239.0.0.10"
+// #define MULTICAST_GROUP_CSTR "239.0.0.10"
 #define MULTICAST_GROUP_CSTR               "239.255.2.114" // Местный ТНТ
 #define MULTICAST_GROUP_PORT               (uint16_t)1234
 #define TIMEOUT_SCHED_SWITCH_REQUEST_BOUND (uint8_t)20
@@ -102,8 +103,7 @@ char *parse_status_to_string(PerformParseStatus_e status)
     }
 }
 
-PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t *socket,
-    const struct iovec transfer_buffer)
+PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t *socket, const struct iovec transfer_buffer)
 {
     ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, transfer_buffer);
 
@@ -144,8 +144,7 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         return PARSE_NO_DATA;
     }
 
-    for (size_t parsed_packet_index = 0; parsed_packet_index < packets_parsed;
-         parsed_packet_index++) {
+    for (size_t parsed_packet_index = 0; parsed_packet_index < packets_parsed; parsed_packet_index++) {
 
         MpegTsPacket_t *packet = mpeg_ts_parser_next_parsed_packet(parser);
 
@@ -156,12 +155,45 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_ONLY) {
             continue;
         }
+#if 0
 
         if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_WITH_PAYLOAD) {
             continue;
         }
+#endif
 
         if (!packet->header.payload_unit_start_indicator) {
+            continue;
+        }
+
+        bool is_PES_packet_at_start = true;
+
+        if (is_PES_packet_at_start) {
+            is_PES_packet_at_start &= packet->data[0] == 0;
+        }
+
+        if (is_PES_packet_at_start) {
+            is_PES_packet_at_start &= packet->data[1] == 0;
+        }
+
+        if (is_PES_packet_at_start) {
+            is_PES_packet_at_start &= packet->data[2] == 1;
+        }
+
+        if (is_PES_packet_at_start) {
+            continue;
+        }
+
+        uint8_t section_offset = packet->data[0]; // aka PSI pointer
+        section_offset += 1;                      // include itself to offset
+
+        bool is_PMT = true;
+
+        if (packet->data[section_offset] != MPEG_TS_PSI_PMT_SECTION_ID) {
+            is_PMT = false;
+        }
+
+        if (!is_PMT) {
             continue;
         }
 
@@ -211,8 +243,7 @@ int main(void)
 
     in_addr_t mutlicast_group = inet_addr(MULTICAST_GROUP_CSTR);
 
-    int bind_status =
-        multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), mutlicast_group);
+    int bind_status = multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), mutlicast_group);
 
     if (!bind_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
