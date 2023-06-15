@@ -18,8 +18,6 @@
 #include <unistd.h>
 
 #include <net/MulticastSocket.h>
-
-#include <mpeg/ts/mpeg_ts_magics.h>
 #include <mpeg/ts/parser.h>
 
 // #define MULTICAST_GROUP_CSTR "239.0.0.10"

@@ -1,6 +1,5 @@
 #include <stdlib.h>
 
-#include <mpeg/ts/packet.h>
 #include <mpeg/ts/parser.h>
 
 #define PARSER_BUFFER_SIZE        4096
