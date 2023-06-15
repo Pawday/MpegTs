@@ -40,11 +40,10 @@ typedef struct MpegTsPMT_t
 
 } MpegTsPMT_t;
 
-
 typedef struct MpegTsPMTMaybe_t
 {
-	bool has_value;
-	MpegTsPMT_t value;
+    bool has_value;
+    MpegTsPMT_t value;
 } MpegTsPMTMaybe_t;
 
 
