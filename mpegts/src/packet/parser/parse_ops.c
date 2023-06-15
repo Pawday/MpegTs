@@ -2,7 +2,6 @@
 #include <limits.h>
 #include <memory.h>
 
-#include <mpeg/ts/packet.h>
 #include <mpeg/ts/parser.h>
 
 #define MAX_ATTEMPTS_TO_REPARSE_BAD_PACKET_WITH_DROP 4

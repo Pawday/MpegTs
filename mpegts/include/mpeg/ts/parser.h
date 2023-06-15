@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "packet.h"
+#include <mpeg/ts/packet/packet.h>
 
 typedef struct MpegTsParser_t
 {
