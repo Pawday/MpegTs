@@ -1,12 +1,10 @@
 #include <mpeg/ts/data/psi/descriptor.h>
 
-MpegTsDescriptorMaybe_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffer, size_t buffer_size)
+MpegTsDescriptorMaybe_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffer,
+    size_t buffer_size)
 {
-    MpegTsDescriptorMaybe_t bad_value;
-    bad_value.has_value = false;
-    bad_value.value.tag = MPEG_DESCRIPTOR_FORBIDDEN;
-    bad_value.value.data = NULL;
-    bad_value.value.length = 0;
+    const MpegTsDescriptorMaybe_t bad_value = {.has_value = false,
+        .value = {.length = 0, .data = NULL, .tag = MPEG_DESCRIPTOR_FORBIDDEN}};
 
     if (buffer_size < MPEG_TS_DESCRIPTOR_HEADER_SIZE) {
         return bad_value;
@@ -30,7 +28,7 @@ MpegTsDescriptorMaybe_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffe
     ret_val.value.tag = parsed_tag;
     ret_val.value.data = buffer + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
 
-    return bad_value;
+    return ret_val;
 }
 
 size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buffer_size)
@@ -40,7 +38,7 @@ size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buf
 
     bool last_descriptor_had_value = true;
 
-    while (last_descriptor_had_value) {
+    while (last_descriptor_had_value && offset_in_buffer_to_next_descriptor < buffer_size) {
         MpegTsDescriptorMaybe_t next_descriptor =
             mpeg_ts_psi_parse_descriptor_linked(buffer + offset_in_buffer_to_next_descriptor,
                 buffer_size - offset_in_buffer_to_next_descriptor);
@@ -51,7 +49,8 @@ size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buf
         }
 
         descriptors_amount_so_far++;
-        offset_in_buffer_to_next_descriptor += next_descriptor.value.length;
+        offset_in_buffer_to_next_descriptor +=
+            next_descriptor.value.length + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
     }
 
     return descriptors_amount_so_far;

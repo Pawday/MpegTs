@@ -5,6 +5,7 @@
 MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_int)
 {
     switch (desctiptor_tag_as_int) {
+    case 0x00:        return MPEG_DESCRIPTOR_RESERVED;
     case 0x01:        return MPEG_DESCRIPTOR_FORBIDDEN;
     case 0x02:        return VIDEO_STREAM_DESCRIPTOR;
     case 0x03:        return AUDIO_STREAM_DESCRIPTOR;
@@ -44,7 +45,7 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
     case 0x26:        return METADATA_DESCRIPTOR;
     case 0x27:        return METADATA_STD_DESCRIPTOR;
     case 0x28:        return AVC_VIDEO_DESCRIPTOR;
-    case 0x29:        return ISO_IEC_13818_11;
+    case 0x29:        return IPMP_DESCRIPTOR;
     case 0x2A:        return AVC_TIMING_AND_HRD_DESCRIPTOR;
     case 0x2B:        return MPEG_2_AAC_AUDIO_DESCRIPTOR;
     case 0x2C:        return FLEXMUXTIMING_DESCRIPTOR;
@@ -115,7 +116,7 @@ const char* mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_ta
         case METADATA_DESCRIPTOR:                         return        "METADATA_DESCRIPTOR";
         case METADATA_STD_DESCRIPTOR:                     return        "METADATA_STD_DESCRIPTOR";
         case AVC_VIDEO_DESCRIPTOR:                        return        "AVC_VIDEO_DESCRIPTOR";
-        case ISO_IEC_13818_11:                            return        "ISO_IEC_13818_11";
+        case IPMP_DESCRIPTOR:                             return        "IPMP_DESCRIPTOR";
         case AVC_TIMING_AND_HRD_DESCRIPTOR:               return        "AVC_TIMING_AND_HRD_DESCRIPTOR";
         case MPEG_2_AAC_AUDIO_DESCRIPTOR:                 return        "MPEG_2_AAC_AUDIO_DESCRIPTOR";
         case FLEXMUXTIMING_DESCRIPTOR:                    return        "FLEXMUXTIMING_DESCRIPTOR";
@@ -132,8 +133,8 @@ const char* mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_ta
         case TRANSPORT_PROFILE_DESCRIPTOR:                return        "TRANSPORT_PROFILE_DESCRIPTOR";
         case HEVC_VIDEO_DESCRIPTOR:                       return        "HEVC_VIDEO_DESCRIPTOR";
         case EXTENSION_DESCRIPTOR:                        return        "EXTENSION_DESCRIPTOR";
-        case MPEG_DESCRIPTOR_USER_PRIVATE:                return        "MPEG_DESCRIPTOR_USER_PRIVATE";
-        case MPEG_DESCRIPTOR_RESERVED:                    return        "MPEG_DESCRIPTOR_RESERVED";                  
+        case MPEG_DESCRIPTOR_USER_PRIVATE:                return        "USER_PRIVATE_DESCRIPTOR";
+        case MPEG_DESCRIPTOR_RESERVED:                    return        "RESERVED_DESCRIPTOR";                  
         }
 }
 

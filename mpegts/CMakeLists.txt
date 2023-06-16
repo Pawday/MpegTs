@@ -10,8 +10,13 @@ target_sources(MpegTS PRIVATE
 	src/packet/parser/data_ops.c
 	src/packet/parser/parse_ops.c
 	src/psi/stream_type.c
+	src/psi/pmt_stream_element.c
+	src/psi/pmt_stream_element_dumper.c
 	src/psi/descriptor/converters.c
 	src/psi/descriptor/parser.c
+	src/psi/descriptor/dumper.c
+	src/psi/pmt_single_packet_parser.c
+	src/psi/pmt_dumper.c
 	)
 
 

@@ -42,7 +42,7 @@ typedef enum MpegTsDescriptorTag_e
     METADATA_DESCRIPTOR,                        // 0x26
     METADATA_STD_DESCRIPTOR,                    // 0x27
     AVC_VIDEO_DESCRIPTOR,                       // 0x28
-    ISO_IEC_13818_11,                           // 0x29
+    IPMP_DESCRIPTOR,                            // 0x29
     AVC_TIMING_AND_HRD_DESCRIPTOR,              // 0x2A
     MPEG_2_AAC_AUDIO_DESCRIPTOR,                // 0x2B
     FLEXMUXTIMING_DESCRIPTOR,                   // 0x2C
