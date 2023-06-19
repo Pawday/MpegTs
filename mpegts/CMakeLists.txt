@@ -21,5 +21,3 @@ target_sources(MpegTS PRIVATE
 
 
 target_include_directories(MpegTS PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-add_subdirectory(tests)

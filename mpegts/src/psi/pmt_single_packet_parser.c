@@ -126,7 +126,6 @@ MpegTsPMTMaybe_t mpeg_ts_parse_pmt_from_packet(MpegTsPacket_t *packet)
 
     section_length |= (length_part_from_byte1 << 8) | length_part_from_byte2;
 
-
     if (section_length >= MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH) {
         return bad_value;
     }

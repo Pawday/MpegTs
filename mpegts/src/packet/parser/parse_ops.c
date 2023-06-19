@@ -8,12 +8,10 @@
 
 MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser)
 {
-    MpegTsPacketHeaderMaybe_t ret_val;
-    ret_val.has_balue = false;
+    const MpegTsPacketHeaderMaybe_t bad_value = {.has_balue = false, .value = {0}};
 
     if (!mpeg_ts_parser_is_synced(parser)) {
-        ret_val.has_balue = false;
-        return ret_val;
+        return bad_value;
     }
 
 #if MPEG_TS_PACKET_HEADER_SIZE != 4
@@ -25,8 +23,7 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
     memcpy(header_data_copy, parser->parse_buffer, MPEG_TS_PACKET_HEADER_SIZE);
 
     if (header_data_copy[0] != MPEG_TS_SYNC_BYTE) {
-        ret_val.has_balue = false;
-        return ret_val;
+        return bad_value;
     }
 
     // 0b000_11111
@@ -41,11 +38,12 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
     //   ^^^ select this
     uint8_t flags_only = flags_and_pid5 & MPEG_TS_HEADER_FLAGS_MASK;
 
+    MpegTsPacketHeaderMaybe_t ret_val;
+
     ret_val.value.error_indicator = (flags_only & MPEG_TS_HEADER_FLAGS_ERR_BIT) != 0;
 
     if (ret_val.value.error_indicator) {
-        ret_val.has_balue = false;
-        return ret_val;
+        return bad_value;
     }
 
     ret_val.value.payload_unit_start_indicator =
@@ -90,20 +88,20 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
 
 MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser)
 {
-    MpegTsPacketMaybe_t ret_val;
-    ret_val.has_value = false;
+
+    const MpegTsPacketMaybe_t bad_value = {.has_value = false, .value = {0}};
 
     if (!mpeg_ts_parser_is_synced(parser)) {
-        ret_val.has_value = false;
-        return ret_val;
+        return bad_value;
     }
 
     MpegTsPacketHeaderMaybe_t header_mb = mpeg_ts_parser_parse_packet_header(parser);
 
     if (!header_mb.has_balue) {
-        ret_val.has_value = false;
-        return ret_val;
+        return bad_value;
     }
+
+    MpegTsPacketMaybe_t ret_val;
 
     ret_val.value.header = header_mb.value;
 
@@ -160,8 +158,8 @@ static size_t mpeg_ts_parser_get_free_space_in_parsed_packets(MpegTsParser_t *pa
 /*
  * Will COPY each packet from *packets and return how much was copied
  */
-static size_t mpeg_ts_parser_add_new_parsed_packet(MpegTsParser_t *parser, MpegTsPacket_t *packets,
-    size_t packets_size)
+static size_t mpeg_ts_parser_add_new_parsed_packet(MpegTsParser_t *parser,
+    const MpegTsPacket_t *packets, size_t packets_size)
 {
 
     size_t free_space = mpeg_ts_parser_get_free_space_in_parsed_packets(parser);

@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "net/MulticastSocket.h"
+#include "net/multicast_socket.h"
 
 bool multicast_socket_create(MulticastSocket_t *multicast_socket)
 {
@@ -28,6 +28,23 @@ static bool validate_socket(MulticastSocket_t *sock)
     }
 
     if (sock->socket_fd == 0) {
+        return false;
+    }
+
+    return true;
+}
+
+bool multicast_socket_set_timeout_sec(MulticastSocket_t *socket, uint8_t seconds)
+{
+    if (!validate_socket(socket)) {
+        return false;
+    }
+
+    struct timeval timeout;
+    timeout.tv_sec = seconds;
+    timeout.tv_usec = 0;
+
+    if (setsockopt(socket->socket_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0) {
         return false;
     }
 
@@ -70,7 +87,6 @@ bool multicast_socket_bind_to(MulticastSocket_t *multicast_socket, in_addr_t bin
         IP_ADD_MEMBERSHIP,
         (char *)&multicast_socket->multcst_req,
         sizeof(multicast_socket->multcst_req));
-
 
     if (subscribe_status != 0) {
         memset(&multicast_socket->multcst_req, 0, sizeof(multicast_socket->multcst_req));

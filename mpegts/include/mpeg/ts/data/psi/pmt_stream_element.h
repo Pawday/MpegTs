@@ -15,7 +15,6 @@
  */
 #define MPEG_TS_PSI_PMT_STREAM_ELEMENT_ELEMENTARY_PID_MASK 0x1f
 
-
 /*
  * element_stream_data:
  *   |byte3  ||byte4 |

@@ -1,5 +1,5 @@
-#include "mpeg/ts/data/psi/psi_magics.h"
 #include <arpa/inet.h>
+#include <asm-generic/errno-base.h>
 #include <assert.h>
 #include <bits/types/struct_iovec.h>
 #include <errno.h>
@@ -20,47 +20,16 @@
 #include <mpeg/ts/data/psi/pmt_dumper.h>
 #include <mpeg/ts/data/psi/pmt_parser.h>
 #include <mpeg/ts/parser.h>
-#include <net/MulticastSocket.h>
+#include <net/multicast_socket.h>
 
 #define MULTICAST_GROUP_CSTR "239.0.0.10"
-//#define MULTICAST_GROUP_CSTR               "239.255.2.114" // Местный ТНТ
-#define MULTICAST_GROUP_PORT               (uint16_t)1234
-#define TIMEOUT_SCHED_SWITCH_REQUEST_BOUND (uint8_t)20
-#define RECV_TIMOUT_SECONDS                2
+#define MULTICAST_GROUP_PORT 1234
+
+#define NET_TIMOUT_SECONDS                 2
+#define SCHED_SWITCH_REQUEST_BOUND 20
 #define TRANSFER_BUFFER_SIZE               2048
 
 bool process_terminate_requested = false;
-
-// Stolen from https://gist.github.com/ccbrown/9722406
-static void DumpHex(const void *data, size_t size)
-{
-    char ascii[17];
-    size_t i, j;
-    ascii[16] = '\0';
-    for (i = 0; i < size; ++i) {
-        printf("%02X ", ((unsigned char *)data)[i]);
-        if (((unsigned char *)data)[i] >= ' ' && ((unsigned char *)data)[i] <= '~') {
-            ascii[i % 16] = ((unsigned char *)data)[i];
-        } else {
-            ascii[i % 16] = '.';
-        }
-        if ((i + 1) % 8 == 0 || i + 1 == size) {
-            printf(" ");
-            if ((i + 1) % 16 == 0) {
-                printf("|  %s \n", ascii);
-            } else if (i + 1 == size) {
-                ascii[(i + 1) % 16] = '\0';
-                if ((i + 1) % 16 <= 8) {
-                    printf(" ");
-                }
-                for (j = (i + 1) % 16; j < 16; ++j) {
-                    printf("   ");
-                }
-                printf("|  %s \n", ascii);
-            }
-        }
-    }
-}
 
 typedef enum EndServiceStatus_e
 {
@@ -74,9 +43,11 @@ typedef enum EndServiceStatus_e
 typedef enum PerformParseStatus_e
 {
     PARSE_OK,
+    PARSE_OK_WITHOUT_ACTION,
     PARSE_NO_DATA,
     PARSE_NET_TIMEOUT,
     PARSE_NET_ERROR,
+    PARSE_NET_INTERUPTED,
     PARSE_NO_MEM_ERROR,
     PARSE_DATA_FORMAT_ERROR,
 } PerformParseStatus_e;
@@ -97,8 +68,9 @@ char *parse_status_to_string(PerformParseStatus_e status)
         return "PARSE_DATA_FORMAT_ERROR";
     case PARSE_NO_DATA:
         return "PARSE_NO_DATA";
+    case PARSE_NET_INTERUPTED:
+        return "NET_INTERUPTED";
     default:
-        assert(true || "unmapped internal error, please map it in parse_status_to_string()");
         return "UNKNOWN";
     }
 }
@@ -108,17 +80,16 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
 {
     ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, transfer_buffer);
 
-    if (bytes_recvd_or_err < 0) {
-        return PARSE_NET_ERROR;
-    }
-
-    // printf("Data \n");
-    // DumpHex(transfer_buffer.iov_base, bytes_recvd_or_err);
+    static uint32_t last_table_crc = 0;
 
     if (bytes_recvd_or_err < 0) {
 
         if (bytes_recvd_or_err == -EAGAIN) {
             return PARSE_NET_TIMEOUT;
+        }
+
+        if (bytes_recvd_or_err == -EINTR) {
+            return PARSE_NET_INTERUPTED;
         }
 
         return PARSE_NET_ERROR;
@@ -140,6 +111,8 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         return PARSE_NO_DATA;
     }
 
+    bool new_table_arrived = false;
+
     for (size_t parsed_packet_index = 0; parsed_packet_index < packets_parsed;
          parsed_packet_index++) {
 
@@ -151,24 +124,22 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
             continue;
         }
 
-	printf("---------------------\n\n\n\n");
+        uint32_t new_pmt_crc = program_map_table.value.CRC;
 
-        printf("Packet PID: 0x%04" PRIx16 " | "
-               "Error: %" PRIx8 " | "
-               "Unit Start: %" PRIx8 " | "
-               "Priority %" PRIx8 " | "
-               "CC: %2" PRIu16 " | "
-               "\n",
-            packet->header.pid,
-            packet->header.error_indicator,
-            packet->header.payload_unit_start_indicator,
-            packet->header.transport_priority,
-            packet->header.continuity_counter);
+        if (new_pmt_crc == last_table_crc) {
+            continue;
+        }
 
-        DumpHex(packet->data, MPEG_TS_PACKET_PAYLOAD_SIZE);
+        new_table_arrived = true;
+
+        last_table_crc = new_pmt_crc;
+
         mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
         printf("\n");
+    }
 
+    if (!new_table_arrived) {
+        return PARSE_OK_WITHOUT_ACTION;
     }
 
     return PARSE_OK;
@@ -191,9 +162,16 @@ int main(void)
     signal(SIGINT, handle_sigterm);
 
     MulticastSocket_t msock;
-    bool multicast_setup_status = multicast_socket_create(&msock);
+    bool multicast_socket_setup_status = multicast_socket_create(&msock);
 
-    if (!multicast_setup_status) {
+    if (!multicast_socket_setup_status) {
+        end_service_status = END_SERVICE_FAIL_SETUP;
+        listen_loop_enabled = false;
+    }
+
+    bool setup_timeout_status = multicast_socket_set_timeout_sec(&msock, NET_TIMOUT_SECONDS);
+
+    if (!setup_timeout_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         listen_loop_enabled = false;
     }
@@ -244,7 +222,13 @@ int main(void)
         case PARSE_NO_DATA:
             continue;
         case PARSE_NET_TIMEOUT:
+        case PARSE_OK_WITHOUT_ACTION:
             timeout_err_counter++;
+            continue;
+        case PARSE_NET_INTERUPTED:
+            listen_loop_enabled = false;
+            end_service_status = END_SERVICE_SIGTERM;
+            continue;
         case PARSE_NET_ERROR:
         case PARSE_NO_MEM_ERROR:
         case PARSE_DATA_FORMAT_ERROR:
@@ -254,7 +238,7 @@ int main(void)
             continue;
         }
 
-        if (timeout_err_counter >= TIMEOUT_SCHED_SWITCH_REQUEST_BOUND) {
+        if (timeout_err_counter >= SCHED_SWITCH_REQUEST_BOUND) {
             timeout_err_counter = 0;
             sched_yield();
             continue;

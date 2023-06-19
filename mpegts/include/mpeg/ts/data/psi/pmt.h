@@ -6,8 +6,6 @@
 
 #include "psi_magics.h"
 
-
-
 typedef struct MpegTsPMT_t
 {
     // uint8_t table_id; // for program map table always 0x02
@@ -42,6 +40,4 @@ typedef struct MpegTsPMTMaybe_t
     bool has_value;
     MpegTsPMT_t value;
 } MpegTsPMTMaybe_t;
-
-
 

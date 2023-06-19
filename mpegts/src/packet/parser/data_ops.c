@@ -49,8 +49,11 @@ static size_t mpeg_ts_parser_find_first_sync_byte_location(MpegTsParser_t *parse
 {
     size_t current_sync_byte_location = 0;
 
-    while (parser->parse_buffer[current_sync_byte_location] != MPEG_TS_SYNC_BYTE &&
-           current_sync_byte_location < parser->parse_buffer_size) {
+    while (current_sync_byte_location < parser->parse_buffer_size) {
+
+        if (parser->parse_buffer[current_sync_byte_location] == MPEG_TS_SYNC_BYTE)
+            break;
+
         current_sync_byte_location++;
     }
 
@@ -73,9 +76,8 @@ bool mpeg_ts_parser_sync(MpegTsParser_t *parser)
         return false;
     }
 
-    if (parser->parse_buffer_size <= sync_byte_pos) {
-        assert(true || "sync_byte_pos outside parser->parse_buffer");
-    }
+    assert(
+        sync_byte_pos < parser->parse_buffer_size && "sync_byte_pos outside parser->parse_buffer");
 
     size_t bytes_to_move = parser->parse_data_put_offset - sync_byte_pos;
 
