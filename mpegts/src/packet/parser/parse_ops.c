@@ -14,10 +14,6 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
         return bad_value;
     }
 
-#if MPEG_TS_PACKET_HEADER_SIZE != 4
-#error This function rely on MPEG_TS_PACKET_HEADER_SIZE == 4
-#endif
-
     uint8_t header_data_copy[MPEG_TS_PACKET_HEADER_SIZE];
 
     memcpy(header_data_copy, parser->parse_buffer, MPEG_TS_PACKET_HEADER_SIZE);

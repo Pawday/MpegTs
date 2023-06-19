@@ -53,16 +53,15 @@ bool mpeg_ts_parser_init(MpegTsParser_t *parser)
 
 void mpeg_ts_parser_free(MpegTsParser_t *parser)
 {
-
     if (parser == NULL) {
         return;
     }
 
-    uint8_t *parser_buffer = parser->parse_buffer;
+    uint8_t *parse_buffer = parser->parse_buffer;
     MpegTsPacket_t *parsed_packets_array = parser->parsed_packets[0];
     MpegTsPacket_t **packets_ptr_array = parser->parsed_packets;
 
-    free(parser_buffer);
+    free(parse_buffer);
     free(parsed_packets_array);
     free(packets_ptr_array);
 }

@@ -276,8 +276,6 @@ MpegTsPMTMaybe_t mpeg_ts_parse_pmt_from_packet(MpegTsPacket_t *packet)
 
     value_ref->program_elements_length = elements_stream_data_size;
 
-    value_ref->CRC = 0;
-
     uint16_t full_section_length = section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET;
 
     // in MSBF order

@@ -43,7 +43,7 @@ size_t mpeg_ts_parser_send_data(MpegTsParser_t *parser, const char *restrict sou
 }
 
 /*
- * @return 0 if not found or sync byte at 0
+ * @return 0 if not found or if sync byte at 0
  */
 static size_t mpeg_ts_parser_find_first_sync_byte_location(MpegTsParser_t *parser)
 {
@@ -76,8 +76,7 @@ bool mpeg_ts_parser_sync(MpegTsParser_t *parser)
         return false;
     }
 
-    assert(
-        sync_byte_pos < parser->parse_buffer_size && "sync_byte_pos outside parser->parse_buffer");
+    assert(sync_byte_pos < parser->parse_buffer_size);
 
     size_t bytes_to_move = parser->parse_data_put_offset - sync_byte_pos;
 
