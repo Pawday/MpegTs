@@ -1,7 +1,5 @@
 #include <arpa/inet.h>
-#include <asm-generic/errno-base.h>
 #include <assert.h>
-#include <bits/types/struct_iovec.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <netinet/in.h>
@@ -25,9 +23,9 @@
 #define MULTICAST_GROUP_CSTR "239.0.0.10"
 #define MULTICAST_GROUP_PORT 1234
 
-#define NET_TIMOUT_SECONDS                 2
+#define NET_TIMOUT_SECONDS         2
 #define SCHED_SWITCH_REQUEST_BOUND 20
-#define TRANSFER_BUFFER_SIZE               2048
+#define TRANSFER_BUFFER_SIZE       2048
 
 bool process_terminate_requested = false;
 
