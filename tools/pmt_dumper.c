@@ -212,6 +212,13 @@ int main(void)
             continue;
         }
 
+
+        if (timeout_err_counter >= SCHED_SWITCH_REQUEST_BOUND) {
+            timeout_err_counter = 0;
+            sched_yield();
+            continue;
+        }
+
         last_parse_status = perform_PMT_parse(&mpeg_ts_parser, &msock, transfer_buffer_handle);
 
         switch (last_parse_status) {
@@ -236,11 +243,6 @@ int main(void)
             continue;
         }
 
-        if (timeout_err_counter >= SCHED_SWITCH_REQUEST_BOUND) {
-            timeout_err_counter = 0;
-            sched_yield();
-            continue;
-        }
 
         timeout_err_counter = 0;
     }
