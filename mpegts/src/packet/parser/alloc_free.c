@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include <mpeg/ts/parser.h>
+#include <mpegts/parser.h>
 
 #define PARSER_BUFFER_SIZE        4096
 #define PARSER_PACKETS_ARRAY_SIZE 10
@@ -57,11 +57,7 @@ void mpeg_ts_parser_free(MpegTsParser_t *parser)
         return;
     }
 
-    uint8_t *parse_buffer = parser->parse_buffer;
-    MpegTsPacket_t *parsed_packets_array = parser->parsed_packets[0];
-    MpegTsPacket_t **packets_ptr_array = parser->parsed_packets;
-
-    free(parse_buffer);
-    free(parsed_packets_array);
-    free(packets_ptr_array);
+    free(parser->parse_buffer);
+    free(parser->parsed_packets[0]);
+    free(parser->parsed_packets);
 }

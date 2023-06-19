@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <memory.h>
 
-#include <mpeg/ts/parser.h>
+#include <mpegts/parser.h>
 
 static size_t mpeg_ts_parser_get_free_space(MpegTsParser_t *parser)
 {

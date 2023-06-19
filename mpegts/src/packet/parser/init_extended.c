@@ -1,6 +1,6 @@
 #include <memory.h>
 
-#include <mpeg/ts/parser.h>
+#include <mpegts/parser.h>
 
 #define MPEG_TS_PARSE_BUFFER_MIN_MULTIPLIER 2
 

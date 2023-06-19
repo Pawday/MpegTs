@@ -2,13 +2,13 @@
 #include <limits.h>
 #include <memory.h>
 
-#include <mpeg/ts/parser.h>
+#include <mpegts/parser.h>
 
 #define MAX_ATTEMPTS_TO_REPARSE_BAD_PACKET_WITH_DROP 4
 
-MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser)
+OptionalMpegTsPacketHeader_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser)
 {
-    const MpegTsPacketHeaderMaybe_t bad_value = {.has_balue = false, .value = {0}};
+    const OptionalMpegTsPacketHeader_t bad_value = {.has_balue = false, .value = {0}};
 
     if (!mpeg_ts_parser_is_synced(parser)) {
         return bad_value;
@@ -34,7 +34,7 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
     //   ^^^ select this
     uint8_t flags_only = flags_and_pid5 & MPEG_TS_HEADER_FLAGS_MASK;
 
-    MpegTsPacketHeaderMaybe_t ret_val;
+    OptionalMpegTsPacketHeader_t ret_val;
 
     ret_val.value.error_indicator = (flags_only & MPEG_TS_HEADER_FLAGS_ERR_BIT) != 0;
 
@@ -82,22 +82,22 @@ MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *par
     return ret_val;
 }
 
-MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser)
+OptionalMpegTsPacket_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser)
 {
 
-    const MpegTsPacketMaybe_t bad_value = {.has_value = false, .value = {0}};
+    const OptionalMpegTsPacket_t bad_value = {.has_value = false, .value = {0}};
 
     if (!mpeg_ts_parser_is_synced(parser)) {
         return bad_value;
     }
 
-    MpegTsPacketHeaderMaybe_t header_mb = mpeg_ts_parser_parse_packet_header(parser);
+    OptionalMpegTsPacketHeader_t header_mb = mpeg_ts_parser_parse_packet_header(parser);
 
     if (!header_mb.has_balue) {
         return bad_value;
     }
 
-    MpegTsPacketMaybe_t ret_val;
+    OptionalMpegTsPacket_t ret_val;
 
     ret_val.value.header = header_mb.value;
 
@@ -109,9 +109,9 @@ MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser)
     return ret_val;
 }
 
-MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser)
+OptionalMpegTsPacket_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser)
 {
-    MpegTsPacketMaybe_t ret_val;
+    OptionalMpegTsPacket_t ret_val;
     ret_val.has_value = false;
 
     for (size_t parse_attempt = 0; parse_attempt < MAX_ATTEMPTS_TO_REPARSE_BAD_PACKET_WITH_DROP;
@@ -184,7 +184,7 @@ static size_t mpeg_ts_parser_add_new_parsed_packet(MpegTsParser_t *parser,
     return packets_to_put;
 }
 
-size_t mpeg_ts_parser_parse_many(MpegTsParser_t *parser)
+size_t mpeg_ts_parser_parse_all_packets_in_buffer(MpegTsParser_t *parser)
 {
     if (parser->parse_buffer_size == 0) {
         return 0;
@@ -198,7 +198,7 @@ size_t mpeg_ts_parser_parse_many(MpegTsParser_t *parser)
             break;
         }
 
-        MpegTsPacketMaybe_t packet_mb = mpeg_ts_parser_parse_packet_with_drop(parser);
+        OptionalMpegTsPacket_t packet_mb = mpeg_ts_parser_parse_packet_with_drop(parser);
 
         if (!packet_mb.has_value) {
             break;
