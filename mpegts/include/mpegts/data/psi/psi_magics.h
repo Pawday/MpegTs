@@ -1,7 +1,6 @@
 #pragma once
 
 #define MPEG_TS_PSI_SECTION_LENGTH_BITS    12
-#define MPEG_TS_PSI_SECTION_MAX_LENGTH     4096  // (2 ^ MPEG_TS_PSI_SECTION_LENGTH_BITS)
 #define MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH 0x3fd // defined in standart
 
 #define MPET_TS_PSI_SECTION_LENGTH_BITS       12

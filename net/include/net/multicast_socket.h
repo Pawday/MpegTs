@@ -14,7 +14,7 @@ typedef struct MulticastSocket_t
 
 
 bool multicast_socket_create(MulticastSocket_t *multicast_socket);
-bool multicast_socket_set_timeout_sec(MulticastSocket_t *socket, uint8_t seconds);
+bool multicast_socket_set_timeout_seconds(MulticastSocket_t *socket, uint8_t seconds);
 
 /*
  * bind_point is the net interface addres to send IGMP subscribe packet

@@ -35,9 +35,9 @@ typedef struct MpegTsPMT_t
 
 } MpegTsPMT_t;
 
-typedef struct MpegTsPMTMaybe_t
+typedef struct
 {
     bool has_value;
     MpegTsPMT_t value;
-} MpegTsPMTMaybe_t;
+} OptionalMpegTsPMT_t;
 

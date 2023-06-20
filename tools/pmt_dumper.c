@@ -15,9 +15,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <mpegts/data/psi/pmt_builder.h>
 #include <mpegts/data/psi/pmt_dumper.h>
 #include <mpegts/data/psi/pmt_parser.h>
-#include <mpegts/parser.h>
+#include <mpegts/packet/inplace_parser.h>
+
 #include <net/multicast_socket.h>
 
 #define MULTICAST_GROUP_CSTR "239.0.0.10"
@@ -25,7 +27,9 @@
 
 #define NET_TIMOUT_SECONDS         2
 #define SCHED_SWITCH_REQUEST_BOUND 20
-#define TRANSFER_BUFFER_SIZE       2048
+#define PARSE_BUFFER_SIZE          2048
+#define BUILD_BUFFER_SIZE          2048
+#define PACKETS_REFS_COUNT         10
 
 bool process_terminate_requested = false;
 
@@ -73,11 +77,12 @@ char *parse_status_to_string(PerformParseStatus_e status)
     }
 }
 
-PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t *socket,
-    const struct iovec transfer_buffer)
+PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec parse_buffer,
+    MpegTsPMTBuilder_t *pmt_builder)
 {
-    ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, transfer_buffer);
 
+    ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, parse_buffer);
+    static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
     static uint32_t last_table_crc = 0;
 
     if (bytes_recvd_or_err < 0) {
@@ -87,7 +92,7 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         }
 
         if (bytes_recvd_or_err == -EINTR) {
-            return PARSE_NET_INTERUPTED;
+            return PARSE_OK_WITHOUT_ACTION;
         }
 
         return PARSE_NET_ERROR;
@@ -95,49 +100,53 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
 
     size_t bytes_recvd = bytes_recvd_or_err;
 
-    mpeg_ts_parser_send_data(parser, transfer_buffer.iov_base, bytes_recvd);
+    size_t linked_packets_count = mpeg_ts_parse_packets_inplace(parse_buffer.iov_base,
+        bytes_recvd,
+        packet_refs,
+        PACKETS_REFS_COUNT);
 
-    bool sync_status = mpeg_ts_parser_sync(parser);
-
-    if (!sync_status && !mpeg_ts_parser_is_synced(parser)) {
-        return PARSE_DATA_FORMAT_ERROR;
-    }
-
-    size_t packets_parsed = mpeg_ts_parser_parse_all_packets_in_buffer(parser);
-
-    if (packets_parsed == 0) {
+    if (linked_packets_count == 0) {
         return PARSE_NO_DATA;
     }
 
-    bool new_table_arrived = false;
+    if (pmt_builder->state == PMT_BUILDER_TABLE_DONE) {
+        OptionalMpegTsPMT_t program_map_table = mpeg_ts_assembler_try_build_table(pmt_builder);
 
-    for (size_t parsed_packet_index = 0; parsed_packet_index < packets_parsed;
-         parsed_packet_index++) {
+        if (program_map_table.has_value) {
 
-        MpegTsPacket_t *packet = mpeg_ts_parser_next_parsed_packet(parser);
+            if (last_table_crc != program_map_table.value.CRC) {
+                mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
+                printf("\n");
+            }
 
-        MpegTsPMTMaybe_t program_map_table = mpeg_ts_parse_pmt_from_packet(packet);
-
-        if (!program_map_table.has_value) {
-            continue;
+            last_table_crc = program_map_table.value.CRC;
         }
-
-        uint32_t new_pmt_crc = program_map_table.value.CRC;
-
-        if (new_pmt_crc == last_table_crc) {
-            continue;
-        }
-
-        new_table_arrived = true;
-
-        last_table_crc = new_pmt_crc;
-
-        mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
-        printf("\n");
+        mpeg_ts_pmt_builder_reset(pmt_builder);
     }
 
-    if (!new_table_arrived) {
-        return PARSE_OK_WITHOUT_ACTION;
+    for (size_t parsed_packet_index = 0; parsed_packet_index < linked_packets_count;
+         parsed_packet_index++) {
+
+        MpegTsPacketRef_t packet_ref = packet_refs[parsed_packet_index];
+
+        MpegTsPMTBuilderSendPacketStatus_e send_status =
+            mpeg_ts_pmt_builder_try_send_packet(pmt_builder, &packet_ref);
+
+        switch (send_status) {
+
+        case PMT_BUILDER_SMALL_TABLE_IS_ASSEMBLED:
+        case PMT_BUILDER_TABLE_IS_ASSEMBLED:
+            return PARSE_OK;
+        case PMT_BUILDER_NEED_MORE_PACKETS:
+            continue;
+        case PMT_BUILDER_INVALID_PACKET_REJECTED:
+        case PMT_BUILDER_UNORDERED_PACKET_REJECTED:
+	    continue;
+        case PMT_BUILDER_REDUDANT_PACKET_REJECTED:
+            return PARSE_OK_WITHOUT_ACTION;
+        default:
+            return PARSE_DATA_FORMAT_ERROR;
+        }
     }
 
     return PARSE_OK;
@@ -164,14 +173,14 @@ int main(void)
 
     if (!multicast_socket_setup_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
-        listen_loop_enabled = false;
+        goto end_service;
     }
 
-    bool setup_timeout_status = multicast_socket_set_timeout_sec(&msock, NET_TIMOUT_SECONDS);
+    bool setup_timeout_status = multicast_socket_set_timeout_seconds(&msock, NET_TIMOUT_SECONDS);
 
     if (!setup_timeout_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
-        listen_loop_enabled = false;
+        goto end_service;
     }
 
     PerformParseStatus_e last_parse_status = PARSE_OK;
@@ -183,24 +192,19 @@ int main(void)
 
     if (!bind_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
-        listen_loop_enabled = false;
+        goto end_service;
     }
 
-    MpegTsParser_t mpeg_ts_parser;
-    bool parser_init_status = mpeg_ts_parser_init(&mpeg_ts_parser);
+    uint8_t parse_buffer[PARSE_BUFFER_SIZE];
+    memset(parse_buffer, 0, PARSE_BUFFER_SIZE);
 
-    if (!parser_init_status) {
-        listen_loop_enabled = false;
-        end_service_status = END_SERVICE_FAIL_SETUP;
-    }
+    struct iovec parse_buffer_handle;
+    parse_buffer_handle.iov_base = parse_buffer;
+    parse_buffer_handle.iov_len = PARSE_BUFFER_SIZE;
 
-    uint8_t transfer_buffer[TRANSFER_BUFFER_SIZE];
-    memset(transfer_buffer, 0, TRANSFER_BUFFER_SIZE);
-
-    struct iovec transfer_buffer_handle;
-
-    transfer_buffer_handle.iov_base = transfer_buffer;
-    transfer_buffer_handle.iov_len = TRANSFER_BUFFER_SIZE;
+    uint8_t build_buffer[BUILD_BUFFER_SIZE];
+    MpegTsPMTBuilder_t pmt_builder;
+    mpeg_ts_pmt_builder_init(&pmt_builder, build_buffer, BUILD_BUFFER_SIZE);
 
     uint8_t timeout_err_counter = 0;
 
@@ -212,15 +216,13 @@ int main(void)
             continue;
         }
 
-
         if (timeout_err_counter >= SCHED_SWITCH_REQUEST_BOUND) {
             timeout_err_counter = 0;
             sched_yield();
             continue;
         }
 
-        last_parse_status = perform_PMT_parse(&mpeg_ts_parser, &msock, transfer_buffer_handle);
-
+        last_parse_status = perform_PMT_parse(&msock, parse_buffer_handle, &pmt_builder);
         switch (last_parse_status) {
 
         case PARSE_OK:
@@ -243,12 +245,12 @@ int main(void)
             continue;
         }
 
-
         timeout_err_counter = 0;
     }
 
     multicast_socket_close(&msock);
-    mpeg_ts_parser_free(&mpeg_ts_parser);
+
+end_service:
 
     switch (end_service_status) {
 
@@ -271,4 +273,3 @@ int main(void)
         return -1;
     }
 }
-

@@ -8,9 +8,9 @@
  */
 #define PMT_MAX_SECTION_OFFSET_IN_SINGLE_PACKET (MPEG_TS_PACKET_SIZE - 3)
 
-MpegTsPMTMaybe_t mpeg_ts_parse_pmt_from_packet(MpegTsPacket_t *packet)
+OptionalMpegTsPMT_t mpeg_ts_parse_pmt_from_packet(MpegTsPacket_t *packet)
 {
-    const MpegTsPMTMaybe_t bad_value = {.has_value = false, .value = {0}};
+    const OptionalMpegTsPMT_t bad_value = {.has_value = false, .value = {0}};
 
     if (packet->header.pid == MPEG_TS_NULL_PACKET_PID) {
         return bad_value;
@@ -130,7 +130,7 @@ MpegTsPMTMaybe_t mpeg_ts_parse_pmt_from_packet(MpegTsPacket_t *packet)
         return bad_value;
     }
 
-    MpegTsPMTMaybe_t ret_val;
+    OptionalMpegTsPMT_t ret_val;
     ret_val.has_value = true;
 
     MpegTsPMT_t *value_ref = &ret_val.value;
