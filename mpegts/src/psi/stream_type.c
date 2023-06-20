@@ -1,11 +1,13 @@
 #include <assert.h>
 
-#include <mpeg/ts/data/psi/stream_type.h>
+#include <mpegts/data/psi/stream_type.h>
 
 MpegTsStreamType_e mpeg_ts_int_to_stream_type(uint8_t type)
 {
     switch (type) {
 
+    case 0x00:
+        return STREAM_TYPE_RESERVED;
     case 0x01:
         return ISO_IEC_11172_2_VIDEO;
     case 0x02:

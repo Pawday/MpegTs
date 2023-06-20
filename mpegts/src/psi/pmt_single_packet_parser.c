@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <mpeg/ts/data/psi/pmt_parser.h>
+#include <mpegts/data/psi/pmt_parser.h>
 
 /*
  * |byte0 | |  byte1  || byte2|

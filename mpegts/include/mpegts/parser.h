@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <mpeg/ts/packet/packet.h>
+#include <mpegts/packet/packet.h>
 
 typedef struct MpegTsParser_t
 {
@@ -77,17 +77,17 @@ bool mpeg_ts_parser_drop_packet(MpegTsParser_t *parser);
 /*
  * Extract header from synced parse buffer without dropping
  */
-MpegTsPacketHeaderMaybe_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser);
+OptionalMpegTsPacketHeader_t mpeg_ts_parser_parse_packet_header(MpegTsParser_t *parser);
 
 /*
  * Parse packet from parse buffer without dropping data from it
  */
-MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser);
+OptionalMpegTsPacket_t mpeg_ts_parser_parse_packet(MpegTsParser_t *parser);
 
 /*
  * Will parse packet and perform drop
  */
-MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser);
+OptionalMpegTsPacket_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser);
 
 /*
  * Will perform mpeg_ts_parser_parse_packet_with_drop() to internal packet storage until
@@ -96,7 +96,7 @@ MpegTsPacketMaybe_t mpeg_ts_parser_parse_packet_with_drop(MpegTsParser_t *parser
  *
  *     @return amount of sucsessfully parsed packets
  */
-size_t mpeg_ts_parser_parse_many(MpegTsParser_t *parser);
+size_t mpeg_ts_parser_parse_all_packets_in_buffer(MpegTsParser_t *parser);
 
 /*
  * @return pointer to parsed packet or NULL if there is no new packets

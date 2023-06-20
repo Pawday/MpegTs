@@ -6,7 +6,7 @@ add_library(MpegTS OBJECT)
 
 target_sources(MpegTS PRIVATE
 	src/packet/parser/init_extended.c
-	src/packet/parser/init_with_stdlib.c
+	src/packet/parser/alloc_free.c
 	src/packet/parser/data_ops.c
 	src/packet/parser/parse_ops.c
 	src/psi/stream_type.c

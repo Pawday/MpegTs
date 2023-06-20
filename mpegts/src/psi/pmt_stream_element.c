@@ -1,5 +1,5 @@
-#include <mpeg/ts/data/psi/pmt_stream_element.h>
-#include <mpeg/ts/data/psi/stream_type.h>
+#include <mpegts/data/psi/pmt_stream_element.h>
+#include <mpegts/data/psi/stream_type.h>
 
 size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_size)
 {

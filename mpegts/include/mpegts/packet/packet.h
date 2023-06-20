@@ -6,7 +6,7 @@
 
 #include "packet_magics.h"
 
-typedef struct MpegTsPacketHeader_t
+typedef struct
 {
     bool error_indicator;
     bool payload_unit_start_indicator;
@@ -18,20 +18,20 @@ typedef struct MpegTsPacketHeader_t
 
 } MpegTsPacketHeader_t;
 
-typedef struct MpegTsPacketHeaderMaybe_t
+typedef struct
 {
     bool has_balue;
     MpegTsPacketHeader_t value;
-} MpegTsPacketHeaderMaybe_t;
+} OptionalMpegTsPacketHeader_t;
 
-typedef struct MpegTsPacket_t
+typedef struct
 {
     MpegTsPacketHeader_t header;
     uint8_t data[MPEG_TS_PACKET_PAYLOAD_SIZE];
 } MpegTsPacket_t;
 
-typedef struct MpegTsPacketMaybe_t
+typedef struct
 {
     MpegTsPacket_t value;
     bool has_value;
-} MpegTsPacketMaybe_t;
+} OptionalMpegTsPacket_t;

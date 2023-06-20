@@ -15,9 +15,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <mpeg/ts/data/psi/pmt_dumper.h>
-#include <mpeg/ts/data/psi/pmt_parser.h>
-#include <mpeg/ts/parser.h>
+#include <mpegts/data/psi/pmt_dumper.h>
+#include <mpegts/data/psi/pmt_parser.h>
+#include <mpegts/parser.h>
 #include <net/multicast_socket.h>
 
 #define MULTICAST_GROUP_CSTR "239.0.0.10"
@@ -103,7 +103,7 @@ PerformParseStatus_e perform_PMT_parse(MpegTsParser_t *parser, MulticastSocket_t
         return PARSE_DATA_FORMAT_ERROR;
     }
 
-    size_t packets_parsed = mpeg_ts_parser_parse_many(parser);
+    size_t packets_parsed = mpeg_ts_parser_parse_all_packets_in_buffer(parser);
 
     if (packets_parsed == 0) {
         return PARSE_NO_DATA;
