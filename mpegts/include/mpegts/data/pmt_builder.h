@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include <mpegts/data/pmt.h>
-#include <mpegts/packet/packet.h>
+#include <mpegts/packet.h>
 
 #define MPEG_TS_MAX_PACKETS_AMOUNT_FOR_SINGLE_PMT_TABLE 6
 

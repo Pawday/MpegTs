@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "mpegts/packet/packet.h"
+#include "mpegts/packet.h"
 
 OptionalMpegTsPacketRef_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t buffer_size);
 
