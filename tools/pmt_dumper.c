@@ -110,16 +110,15 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
     }
 
     if (pmt_builder->state == PMT_BUILDER_TABLE_DONE) {
-        OptionalMpegTsPMT_t program_map_table = mpeg_ts_assembler_try_build_table(pmt_builder);
+        OptionalMpegTsPMT_t program_map_table = mpeg_ts_pmt_builder_try_build_table(pmt_builder);
 
         if (program_map_table.has_value) {
 
             if (last_table_crc != program_map_table.value.CRC) {
                 mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
                 printf("\n");
+                last_table_crc = program_map_table.value.CRC;
             }
-
-            last_table_crc = program_map_table.value.CRC;
         }
         mpeg_ts_pmt_builder_reset(pmt_builder);
     }
@@ -128,6 +127,12 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
          parsed_packet_index++) {
 
         MpegTsPacketRef_t packet_ref = packet_refs[parsed_packet_index];
+
+        if (pmt_builder->state == PMT_BUILDER_TABLE_IS_BUILDING) {
+            if (pmt_builder->last_packet_header.pid != packet_ref.header.pid) {
+                continue;
+            }
+        }
 
         MpegTsPMTBuilderSendPacketStatus_e send_status =
             mpeg_ts_pmt_builder_try_send_packet(pmt_builder, &packet_ref);
@@ -139,17 +144,20 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
             return PARSE_OK;
         case PMT_BUILDER_NEED_MORE_PACKETS:
             continue;
-        case PMT_BUILDER_INVALID_PACKET_REJECTED:
         case PMT_BUILDER_UNORDERED_PACKET_REJECTED:
-	    continue;
+            continue;
         case PMT_BUILDER_REDUDANT_PACKET_REJECTED:
-            return PARSE_OK_WITHOUT_ACTION;
+            mpeg_ts_pmt_builder_reset(pmt_builder);
+            continue;
+        case PMT_BUILDER_NOT_ENOUGHT_MEMORY:
+            return PARSE_NO_MEM_ERROR;
         default:
-            return PARSE_DATA_FORMAT_ERROR;
+            break;
         }
     }
 
-    return PARSE_OK;
+    mpeg_ts_pmt_builder_reset(pmt_builder);
+    return PARSE_OK_WITHOUT_ACTION;
 }
 
 void handle_sigterm(int signo)
@@ -203,6 +211,7 @@ int main(void)
     parse_buffer_handle.iov_len = PARSE_BUFFER_SIZE;
 
     uint8_t build_buffer[BUILD_BUFFER_SIZE];
+    memset(build_buffer, 0x0, BUILD_BUFFER_SIZE);
     MpegTsPMTBuilder_t pmt_builder;
     mpeg_ts_pmt_builder_init(&pmt_builder, build_buffer, BUILD_BUFFER_SIZE);
 
@@ -273,3 +282,4 @@ end_service:
         return -1;
     }
 }
+

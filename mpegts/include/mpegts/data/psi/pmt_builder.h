@@ -18,7 +18,7 @@ typedef enum
 typedef struct
 {
     MpegTsPMTAssemblerState_e state;
-    MpegTsPacketHeader_t first_packet_header;
+    MpegTsPacketHeader_t last_packet_header;
 
     uint16_t table_length : MPEG_TS_PSI_SECTION_LENGTH_BITS;
 
@@ -47,4 +47,5 @@ MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(
     MpegTsPMTBuilder_t *builder, MpegTsPacketRef_t *packet);
 
 
-OptionalMpegTsPMT_t mpeg_ts_assembler_try_build_table(MpegTsPMTBuilder_t *builder);
+OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder);
+

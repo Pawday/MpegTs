@@ -1,3 +1,4 @@
+#include "mpegts/data/psi/psi_magics.h"
 #include <assert.h>
 #include <memory.h>
 
@@ -17,6 +18,9 @@ void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder)
     builder->state = PMT_BUILDER_EMPTY;
     builder->table_length = 0;
     builder->table_data_put_offset = 0;
+
+    MpegTsPacketHeader_t empty_header = {0};
+    builder->last_packet_header = empty_header;
 }
 
 static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
@@ -146,19 +150,27 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
         return PMT_BUILDER_NOT_ENOUGHT_MEMORY;
     }
 
-    memcpy(builder->table_data + builder->table_data_put_offset,
-        packet->data,
-        MPEG_TS_PACKET_PAYLOAD_SIZE);
-
-    builder->table_data_put_offset += MPEG_TS_PACKET_PAYLOAD_SIZE;
-
-    builder->first_packet_header = packet->header;
-    builder->table_length = section_length;
-
     bool is_pmt_single_packed =
         section_length < MPEG_TS_PACKET_SIZE - (MPEG_TS_PACKET_HEADER_SIZE + section_offset +
                                                    current_packet_payload_offset +
                                                    MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
+
+    size_t mpeg_ts_payload_or_section_size = MPEG_TS_PACKET_PAYLOAD_SIZE;
+
+    if (section_length < mpeg_ts_payload_or_section_size) {
+        mpeg_ts_payload_or_section_size =
+            section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_LAST_BYTE_OFFSET;
+    }
+
+    memcpy(builder->table_data + builder->table_data_put_offset,
+        section_data,
+        mpeg_ts_payload_or_section_size - section_offset - current_packet_payload_offset);
+
+    builder->table_data_put_offset +=
+        mpeg_ts_payload_or_section_size - section_offset - current_packet_payload_offset;
+
+    builder->last_packet_header = packet->header;
+    builder->table_length = section_length;
 
     if (is_pmt_single_packed) {
         builder->state = PMT_BUILDER_TABLE_DONE;
@@ -177,11 +189,11 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
     assert(builder->table_data_put_offset < builder->table_data_capacity);
     assert(builder->table_length <= builder->table_data_capacity);
 
-    if (packet->header.pid != builder->first_packet_header.pid) {
+    if (packet->header.pid != builder->last_packet_header.pid) {
         return PMT_BUILDER_INVALID_PACKET_REJECTED;
     }
 
-    if (packet->header.continuity_counter != builder->first_packet_header.continuity_counter - 1) {
+    if (packet->header.continuity_counter != builder->last_packet_header.continuity_counter + 1) {
         return PMT_BUILDER_UNORDERED_PACKET_REJECTED;
     }
 
@@ -189,24 +201,23 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
         return PMT_BUILDER_REDUDANT_PACKET_REJECTED;
     }
 
-    builder->first_packet_header = packet->header;
+    builder->last_packet_header = packet->header;
 
     size_t data_to_send = MPEG_TS_PACKET_PAYLOAD_SIZE;
-    size_t remainding_data = builder->table_length - builder->table_data_put_offset;
+    size_t remainding_data = (builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) -
+                             builder->table_data_put_offset;
 
     if (data_to_send > remainding_data) {
         data_to_send = remainding_data;
         builder->state = PMT_BUILDER_TABLE_DONE;
     }
 
-    memcpy(builder->table_data + builder->table_data_put_offset,
-        packet->data,
-        MPEG_TS_PACKET_PAYLOAD_SIZE);
+    memcpy(builder->table_data + builder->table_data_put_offset, packet->data, data_to_send);
 
     builder->table_data_put_offset += data_to_send;
 
     if (builder->state == PMT_BUILDER_TABLE_DONE) {
-        assert(builder->table_data_put_offset == builder->table_length);
+        assert(builder->table_data_put_offset == builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
         return PMT_BUILDER_TABLE_IS_ASSEMBLED;
     }
 
@@ -232,7 +243,7 @@ MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMT
     return send_continuation_packet(builder, packet);
 }
 
-OptionalMpegTsPMT_t mpeg_ts_assembler_try_build_table(MpegTsPMTBuilder_t *builder)
+OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder)
 {
 
     const OptionalMpegTsPMT_t bad_value = {.has_value = false, .value = {0}};
@@ -263,13 +274,12 @@ OptionalMpegTsPMT_t mpeg_ts_assembler_try_build_table(MpegTsPMTBuilder_t *builde
      *///               |
     uint8_t flags_and_length = table_data[1];
 
-#if 0
-    uint8_t syntax_indicator_byte_masked = flags_and_length & MPEG_TS_PSI_PMT_SECTION_SYNTAX_INDICATOR_BIT;
+    uint8_t syntax_indicator_byte_masked =
+        flags_and_length & MPEG_TS_PSI_PMT_SECTION_SYNTAX_INDICATOR_BIT;
 
     if (syntax_indicator_byte_masked == 0) {
         return bad_value;
     }
-#endif
 
     if ((flags_and_length & MPEG_TS_PSI_PMT_SHOULD_BE_ZERO_BIT) != 0) {
         return bad_value;
@@ -440,10 +450,10 @@ OptionalMpegTsPMT_t mpeg_ts_assembler_try_build_table(MpegTsPMTBuilder_t *builde
     uint16_t full_section_length = section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET;
 
     // in MSBF order
-    uint8_t CRC_byte_0 = table_data[full_section_length - 4];
-    uint8_t CRC_byte_1 = table_data[full_section_length - 3];
-    uint8_t CRC_byte_2 = table_data[full_section_length - 2];
-    uint8_t CRC_byte_3 = table_data[full_section_length - 1];
+    uint8_t CRC_byte_0 = table_data[full_section_length - 3];
+    uint8_t CRC_byte_1 = table_data[full_section_length - 2];
+    uint8_t CRC_byte_2 = table_data[full_section_length - 1];
+    uint8_t CRC_byte_3 = table_data[full_section_length - 0];
 
     value_ref->CRC = 0;
     value_ref->CRC |= CRC_byte_0 << (8 * 3);
@@ -453,3 +463,4 @@ OptionalMpegTsPMT_t mpeg_ts_assembler_try_build_table(MpegTsPMTBuilder_t *builde
 
     return valid_table;
 }
+

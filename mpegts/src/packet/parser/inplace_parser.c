@@ -78,7 +78,7 @@ size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
         if (!next_packet_location_offset_maybe.has_value) {
             break;
         }
-        next_packet_location_offset += next_packet_location_offset_maybe.value;
+        next_packet_location_offset += MPEG_TS_PACKET_SIZE;
 
         OptionalMpegTsPacketRef_t next_packet_ref =
             mpeg_ts_parse_packet_inplace(buffer + next_packet_location_offset,
@@ -95,3 +95,4 @@ size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
 
     return packets_parsed_so_far;
 }
+

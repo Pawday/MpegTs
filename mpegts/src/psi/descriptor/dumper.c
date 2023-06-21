@@ -7,6 +7,8 @@ void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, F
         "\"desctiptor_tag\":\"%s\",",
         mpeg_ts_descriptor_tag_to_string(descriptor_to_dump->tag));
 
+    fprintf(stream, "\"descriptor_length\":%" PRIu8",", descriptor_to_dump->length);
+
     fprintf(stream, "\"descriptor_data\":");
 
     if (descriptor_to_dump->length == 0) {
@@ -50,3 +52,4 @@ void mpeg_ts_dump_descriptors_to_stream(uint8_t *first_descriptor_location, size
         current_descriptor_data_offset += descriptor.value.length + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
     }
 }
+
