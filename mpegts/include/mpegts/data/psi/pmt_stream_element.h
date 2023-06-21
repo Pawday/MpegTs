@@ -46,3 +46,4 @@ MpegTsElementStreamMaybe_t mpeg_ts_parse_pmt_stream_element_linked(uint8_t *elem
  * return amount of MpegTsElementStream_t in "element_stream_data"
  */
 size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_size);
+

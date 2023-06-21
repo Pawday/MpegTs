@@ -120,3 +120,4 @@ MpegTsPacket_t *mpeg_ts_parser_next_parsed_packet(MpegTsParser_t *parser);
  */
 bool mpeg_ts_parser_init(MpegTsParser_t *parser);
 void mpeg_ts_parser_free(MpegTsParser_t *parser);
+

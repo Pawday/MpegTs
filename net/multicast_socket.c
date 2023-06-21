@@ -126,3 +126,4 @@ void multicast_socket_close(MulticastSocket_t *socket)
     close(socket->socket_fd);
     socket->socket_fd = 0;
 }
+

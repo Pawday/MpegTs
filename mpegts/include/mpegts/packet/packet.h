@@ -31,3 +31,4 @@ typedef struct
 } OptionalMpegTsPacketRef_t;
 
 MpegTsPacket_t mpeg_ts_packet_clone(MpegTsPacketRef_t *ref);
+

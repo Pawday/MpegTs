@@ -5,3 +5,4 @@ add_library(MulticastSocket OBJECT)
 target_sources(MulticastSocket PRIVATE multicast_socket.c)
 
 target_include_directories(MulticastSocket PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+

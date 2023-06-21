@@ -55,3 +55,4 @@ size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buf
 
     return descriptors_amount_so_far;
 }
+

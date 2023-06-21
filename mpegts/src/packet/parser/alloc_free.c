@@ -61,3 +61,4 @@ void mpeg_ts_parser_free(MpegTsParser_t *parser)
     free(parser->parsed_packets[0]);
     free(parser->parsed_packets);
 }
+
