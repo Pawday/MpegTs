@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <net/multicast_socket.h>
+#include "net/multicast_socket.h"
 
 bool multicast_socket_create(MulticastSocket_t *multicast_socket)
 {

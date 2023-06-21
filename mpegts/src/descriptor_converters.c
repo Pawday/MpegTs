@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "mpegts/data/descriptor.h"
+#include "mpegts/descriptor.h"
 
 MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_int)
 {

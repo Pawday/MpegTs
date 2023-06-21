@@ -1,4 +1,4 @@
-#include "mpegts/data/descriptor_dumper.h"
+#include "mpegts/descriptor_dumper.h"
 
 void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
