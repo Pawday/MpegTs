@@ -30,5 +30,3 @@ typedef struct
     bool has_value;
 } OptionalMpegTsPacketRef_t;
 
-MpegTsPacket_t mpeg_ts_packet_clone(MpegTsPacketRef_t *ref);
-
