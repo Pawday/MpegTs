@@ -14,12 +14,6 @@ typedef struct
 
 typedef struct
 {
-    MpegTsPacket_t value;
-    bool has_value;
-} OptionalMpegTsPacket_t;
-
-typedef struct
-{
     MpegTsPacketHeader_t header;
     uint8_t *data;
 } MpegTsPacketRef_t;
