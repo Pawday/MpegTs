@@ -1,10 +1,9 @@
 #pragma once
 
-#include <bits/types/struct_iovec.h>
 #include <netinet/in.h>
 #include <stdbool.h>
 
-typedef struct MulticastSocket_t
+typedef struct
 {
     int socket_fd;
     struct ip_mreq multcst_req;

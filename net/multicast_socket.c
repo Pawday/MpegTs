@@ -10,7 +10,6 @@
 bool multicast_socket_create(MulticastSocket_t *multicast_socket)
 {
     int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-
     if (socket_fd == -1) {
         return false;
     }
@@ -22,7 +21,6 @@ bool multicast_socket_create(MulticastSocket_t *multicast_socket)
 
 static bool validate_socket(MulticastSocket_t *sock)
 {
-
     if (sock->socket_fd <= 0) {
         return false;
     }
@@ -68,7 +66,6 @@ bool multicast_socket_bind_to(MulticastSocket_t *multicast_socket, in_addr_t bin
     int bind_status = bind(multicast_socket->socket_fd,
         (struct sockaddr *)&multicast_socket->bind_point,
         sizeof(multicast_socket->bind_point));
-
     if (bind_status != 0) {
         memset(&multicast_socket->bind_point, 0, sizeof(multicast_socket->bind_point));
         multicast_socket_close(multicast_socket);
@@ -83,7 +80,6 @@ bool multicast_socket_bind_to(MulticastSocket_t *multicast_socket, in_addr_t bin
         IP_ADD_MEMBERSHIP,
         (char *)&multicast_socket->multcst_req,
         sizeof(multicast_socket->multcst_req));
-
     if (subscribe_status != 0) {
         memset(&multicast_socket->multcst_req, 0, sizeof(multicast_socket->multcst_req));
         return false;
@@ -104,15 +100,13 @@ ssize_t multicast_socket_recv(MulticastSocket_t *sock, struct iovec span)
         return -ENOMEM;
     }
 
-    socklen_t struct_size = sizeof(sock->bind_point);
-
+    socklen_t bind_point_struct_size_val = sizeof(sock->bind_point);
     ssize_t readen_or_err = recvfrom(sock->socket_fd,
         span.iov_base,
         span.iov_len,
         0,
         (struct sockaddr *)&sock->bind_point,
-        &struct_size);
-
+        &bind_point_struct_size_val);
     if (readen_or_err < 0) {
         int err = errno;
         return -err;

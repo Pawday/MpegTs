@@ -6,13 +6,13 @@
 
 #include "psi_magics.h"
 
-typedef struct MpegTsPMT_t
+typedef struct
 {
     // uint8_t table_id; // for program map table always 0x02
     // bool section_syntax_indicator; // always true
 
     /*
-     * NOTE: section_length decreased by MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET because
+     * NOTE: section_length is actualy less then full pmt length by MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET (3) because
      * ISO/IEC 13818-1: "specify the number of bytes of the section starting immediately following
      *                       the section_length field"
      */

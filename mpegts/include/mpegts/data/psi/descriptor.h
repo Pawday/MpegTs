@@ -6,7 +6,7 @@
 
 #define MPEG_TS_DESCRIPTOR_HEADER_SIZE 2
 
-typedef enum MpegTsDescriptorTag_e
+typedef enum
 {
     MPEG_DESCRIPTOR_FORBIDDEN,                  // 0x01
     VIDEO_STREAM_DESCRIPTOR,                    // 0x02
@@ -64,7 +64,7 @@ typedef enum MpegTsDescriptorTag_e
     MPEG_DESCRIPTOR_RESERVED                    // 0x00, 0x39->0x3E
 } MpegTsDescriptorTag_e;
 
-typedef struct MpegTsDescriptor_t
+typedef struct
 {
     MpegTsDescriptorTag_e tag;
     uint8_t length;
@@ -72,7 +72,7 @@ typedef struct MpegTsDescriptor_t
 
 } MpegTsDescriptor_t;
 
-typedef struct MpegTsDescriptorMaybe_t
+typedef struct
 {
     bool has_value;
     MpegTsDescriptor_t value;

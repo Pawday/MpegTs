@@ -23,7 +23,7 @@
  */
 #define MPEG_TS_PSI_PMT_STREAM_ELEMENT_ES_INFO_LENGTH_MASK 0x0f
 
-typedef struct MpegTsElementStream_t
+typedef struct
 {
     MpegTsStreamType_e stream_type;
     uint16_t elementary_pid : MPET_TS_PSI_PMT_ELEMENTARY_PID_BITS;
@@ -32,7 +32,7 @@ typedef struct MpegTsElementStream_t
 
 } MpegTsElementStream_t;
 
-typedef struct MpegTsElementStreamMaybe_t
+typedef struct
 {
     bool has_value;
     MpegTsElementStream_t value;

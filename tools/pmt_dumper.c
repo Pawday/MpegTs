@@ -11,7 +11,6 @@
 
 #include <mpegts/data/psi/pmt_builder.h>
 #include <mpegts/data/psi/pmt_dumper.h>
-#include <mpegts/data/psi/pmt_parser.h>
 #include <mpegts/packet/inplace_parser.h>
 
 #include <net/multicast_socket.h>
@@ -21,8 +20,8 @@
 
 #define NET_TIMOUT_SECONDS         2
 #define SCHED_SWITCH_REQUEST_BOUND 20
-#define PARSE_BUFFER_SIZE          2048
-#define BUILD_BUFFER_SIZE          2048
+#define PARSE_BUFFER_SIZE          1024
+#define PMT_BUILD_BUFFER_SIZE      MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH
 #define PACKETS_REFS_COUNT         10
 
 bool process_terminate_requested = false;
@@ -74,20 +73,17 @@ char *parse_status_to_string(PerformParseStatus_e status)
 PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec parse_buffer,
     MpegTsPMTBuilder_t *pmt_builder)
 {
-
     ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, parse_buffer);
+
     static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
 
     if (bytes_recvd_or_err < 0) {
-
         if (bytes_recvd_or_err == -EAGAIN) {
             return PARSE_NET_TIMEOUT;
         }
-
         if (bytes_recvd_or_err == -EINTR) {
             return PARSE_OK_WITHOUT_ACTION;
         }
-
         return PARSE_NET_ERROR;
     }
 
@@ -97,25 +93,21 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
         bytes_recvd,
         packet_refs,
         PACKETS_REFS_COUNT);
-
     if (linked_packets_count == 0) {
         return PARSE_NO_DATA;
     }
 
     if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         OptionalMpegTsPMT_t program_map_table = mpeg_ts_pmt_builder_try_build_table(pmt_builder);
-
         if (program_map_table.has_value) {
-
             static uint32_t last_table_crc = 0;
-
             if (last_table_crc != program_map_table.value.CRC) {
                 mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
                 printf("\n");
                 last_table_crc = program_map_table.value.CRC;
             }
+            mpeg_ts_pmt_builder_reset(pmt_builder);
         }
-        mpeg_ts_pmt_builder_reset(pmt_builder);
     }
 
     for (size_t parsed_packet_index = 0; parsed_packet_index < linked_packets_count;
@@ -123,24 +115,21 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
 
         MpegTsPacketRef_t packet_ref = packet_refs[parsed_packet_index];
 
-        if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_IS_BUILDING) {
-            if (pmt_builder->last_packet_header.pid != packet_ref.header.pid) {
-                continue;
-            }
+        if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_IS_BUILDING &&
+            pmt_builder->last_packet_header.pid != packet_ref.header.pid) {
+            continue;
         }
 
         MpegTsPMTBuilderSendPacketStatus_e send_status =
             mpeg_ts_pmt_builder_try_send_packet(pmt_builder, &packet_ref);
 
         switch (send_status) {
-
         case PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED:
         case PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED:
             return PARSE_OK;
         case PMT_BUILDER_SEND_STATUS_NEED_MORE_PACKETS:
             continue;
         case PMT_BUILDER_SEND_STATUS_UNORDERED_PACKET_REJECTED:
-            continue;
         case PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED:
             mpeg_ts_pmt_builder_reset(pmt_builder);
             continue;
@@ -173,14 +162,12 @@ int main(void)
 
     MulticastSocket_t msock;
     bool multicast_socket_setup_status = multicast_socket_create(&msock);
-
     if (!multicast_socket_setup_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
     }
 
     bool setup_timeout_status = multicast_socket_set_timeout_seconds(&msock, NET_TIMOUT_SECONDS);
-
     if (!setup_timeout_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
@@ -205,10 +192,10 @@ int main(void)
     parse_buffer_handle.iov_base = parse_buffer;
     parse_buffer_handle.iov_len = PARSE_BUFFER_SIZE;
 
-    uint8_t build_buffer[BUILD_BUFFER_SIZE];
-    memset(build_buffer, 0x0, BUILD_BUFFER_SIZE);
+    uint8_t build_buffer[PMT_BUILD_BUFFER_SIZE];
+    memset(build_buffer, 0x0, PMT_BUILD_BUFFER_SIZE);
     MpegTsPMTBuilder_t pmt_builder;
-    mpeg_ts_pmt_builder_init(&pmt_builder, build_buffer, BUILD_BUFFER_SIZE);
+    mpeg_ts_pmt_builder_init(&pmt_builder, build_buffer, PMT_BUILD_BUFFER_SIZE);
 
     uint8_t timeout_err_counter = 0;
 
@@ -228,7 +215,6 @@ int main(void)
 
         last_parse_status = perform_PMT_parse(&msock, parse_buffer_handle, &pmt_builder);
         switch (last_parse_status) {
-
         case PARSE_OK:
         case PARSE_NO_DATA:
             continue;
@@ -248,8 +234,6 @@ int main(void)
             end_service_status = END_SERVICE_INTERNAL_ERROR;
             continue;
         }
-
-        timeout_err_counter = 0;
     }
 
     multicast_socket_close(&msock);

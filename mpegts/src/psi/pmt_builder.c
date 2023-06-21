@@ -205,7 +205,6 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
     size_t data_to_send = MPEG_TS_PACKET_PAYLOAD_SIZE;
     size_t remainding_data = (builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) -
                              builder->table_data_put_offset;
-
     if (data_to_send > remainding_data) {
         data_to_send = remainding_data;
         builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;
@@ -226,7 +225,6 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMTBuilder_t *builder,
     MpegTsPacketRef_t *packet)
 {
-
     if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         return PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED;
     }
@@ -235,7 +233,6 @@ MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMT
         if (!is_start_pmt_packet(packet)) {
             return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
         }
-
         return send_first_packet(builder, packet);
     }
 

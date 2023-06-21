@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-typedef enum MpegTsStreamType_e
+typedef enum
 {
     // 0x00 Reserved
     ISO_IEC_11172_2_VIDEO,                                                                    // 0x01
