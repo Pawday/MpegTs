@@ -9,8 +9,8 @@ void mpeg_ts_dump_stream_element_to_stream(MpegTsElementStream_t *element, FILE 
         "\"stream_type\":\"%s\",",
         mpeg_ts_stream_type_to_string(element->stream_type));
 
-    fprintf(output_stream, "\"elementary_PID\":%" PRIu16 ",", element->elementary_pid);
-    fprintf(output_stream, "\"es_info_length\":%" PRIu16 ",", element->es_info_length);
+    fprintf(output_stream, "\"elementary_PID\":\"0x%" PRIx16 "\",", element->elementary_pid);
+    fprintf(output_stream, "\"es_info_length\":\"0x%" PRIx16 "\",", element->es_info_length);
 
     fprintf(output_stream, "\"descriptors\":");
 

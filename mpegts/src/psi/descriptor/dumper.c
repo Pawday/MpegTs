@@ -7,8 +7,6 @@ void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, F
         "\"desctiptor_tag\":\"%s\",",
         mpeg_ts_descriptor_tag_to_string(descriptor_to_dump->tag));
 
-    fprintf(stream, "\"descriptor_length\":%" PRIu8",", descriptor_to_dump->length);
-
     fprintf(stream, "\"descriptor_data\":");
 
     if (descriptor_to_dump->length == 0) {
@@ -18,7 +16,7 @@ void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, F
 
     fprintf(stream, "[");
     for (size_t byte_index = 0; byte_index < descriptor_to_dump->length; byte_index++) {
-        fprintf(stream, "%" PRIu8, descriptor_to_dump->data[byte_index]);
+        fprintf(stream, "\"0x%" PRIx8 "\"", descriptor_to_dump->data[byte_index]);
 
         if (byte_index + 1 != descriptor_to_dump->length) {
             fputc(',', stream);
