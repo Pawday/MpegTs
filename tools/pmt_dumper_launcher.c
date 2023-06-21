@@ -9,8 +9,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "mpegts/data/psi/pmt_builder.h"
-#include "mpegts/data/psi/pmt_dumper.h"
+#include "mpegts/data/pmt_builder.h"
+#include "mpegts/data/pmt_dumper.h"
 #include "mpegts/packet/inplace_parser.h"
 
 #include "net/multicast_socket.h"

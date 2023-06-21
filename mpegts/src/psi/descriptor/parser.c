@@ -1,4 +1,4 @@
-#include "mpegts/data/psi/descriptor.h"
+#include "mpegts/data/descriptor.h"
 
 OptionalMpegTsDescriptor_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffer,
     size_t buffer_size)

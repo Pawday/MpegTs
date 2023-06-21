@@ -1,5 +1,5 @@
-#include "mpegts/data/psi/descriptor_dumper.h"
-#include "mpegts/data/psi/pmt_stream_element_dumper.h"
+#include "mpegts/data/descriptor_dumper.h"
+#include "mpegts/data/pmt_stream_element_dumper.h"
 
 void mpeg_ts_dump_stream_element_to_stream(MpegTsElementStream_t *element, FILE *output_stream)
 {
