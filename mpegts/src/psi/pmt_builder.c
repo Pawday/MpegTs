@@ -17,6 +17,7 @@ void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder)
     builder->state = PMT_BUILDER_STATE_EMPTY;
     builder->table_length = 0;
     builder->table_data_put_offset = 0;
+    memset(builder->table_data, 0, builder->table_data_capacity);
 
     MpegTsPacketHeader_t empty_header = {0};
     builder->last_packet_header = empty_header;
@@ -215,7 +216,8 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
     builder->table_data_put_offset += data_to_send;
 
     if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
-        assert(builder->table_data_put_offset == builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
+        assert(builder->table_data_put_offset ==
+               builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
         return PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED;
     }
 

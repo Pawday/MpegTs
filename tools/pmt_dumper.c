@@ -74,9 +74,6 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
     MpegTsPMTBuilder_t *pmt_builder)
 {
     ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, parse_buffer);
-
-    static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
-
     if (bytes_recvd_or_err < 0) {
         if (bytes_recvd_or_err == -EAGAIN) {
             return PARSE_NET_TIMEOUT;
@@ -86,6 +83,9 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
         }
         return PARSE_NET_ERROR;
     }
+
+
+    static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
 
     size_t bytes_recvd = bytes_recvd_or_err;
 
@@ -122,7 +122,6 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
 
         MpegTsPMTBuilderSendPacketStatus_e send_status =
             mpeg_ts_pmt_builder_try_send_packet(pmt_builder, &packet_ref);
-
         switch (send_status) {
         case PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED:
         case PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED:
@@ -179,7 +178,6 @@ int main(void)
 
     int bind_status =
         multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), mutlicast_group);
-
     if (!bind_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
@@ -187,15 +185,14 @@ int main(void)
 
     uint8_t parse_buffer[PARSE_BUFFER_SIZE];
     memset(parse_buffer, 0, PARSE_BUFFER_SIZE);
-
     struct iovec parse_buffer_handle;
     parse_buffer_handle.iov_base = parse_buffer;
     parse_buffer_handle.iov_len = PARSE_BUFFER_SIZE;
 
-    uint8_t build_buffer[PMT_BUILD_BUFFER_SIZE];
-    memset(build_buffer, 0x0, PMT_BUILD_BUFFER_SIZE);
+    uint8_t pmt_build_buffer[PMT_BUILD_BUFFER_SIZE];
+    memset(pmt_build_buffer, 0, PMT_BUILD_BUFFER_SIZE);
     MpegTsPMTBuilder_t pmt_builder;
-    mpeg_ts_pmt_builder_init(&pmt_builder, build_buffer, PMT_BUILD_BUFFER_SIZE);
+    mpeg_ts_pmt_builder_init(&pmt_builder, pmt_build_buffer, PMT_BUILD_BUFFER_SIZE);
 
     uint8_t timeout_err_counter = 0;
 

@@ -54,7 +54,7 @@ typedef enum
     QUALITY_ACCESS_UNITS,                                                                     // 0x2F
                                                                                               // 0x30->0x7E Reserved
     IPMP_STREAM,                                                                              // 0x7F
-    STREAM_TYPE_USER_PRIVATE,                                                                             // 0x80->0xFF
+    STREAM_TYPE_USER_PRIVATE,                                                                 // 0x80->0xFF
     STREAM_TYPE_RESERVED                                                                      // 0x00, 0x30->0x7E
 } MpegTsStreamType_e;
 
