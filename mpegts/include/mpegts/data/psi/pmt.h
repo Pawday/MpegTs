@@ -19,13 +19,13 @@ typedef struct
     uint16_t section_length : MPEG_TS_PSI_SECTION_LENGTH_BITS;
 
     uint16_t program_number;
-    uint8_t version_number : MPET_TS_PSI_PMT_VERSION_NUMBER_BITS;
+    uint8_t version_number : MPEG_TS_PSI_PMT_VERSION_NUMBER_BITS;
     bool current_next_indicator;
     // uint8_t section_number;      // for program map table always 0x00
     // uint8_t last_section_number; // for program map table always 0x00
-    uint16_t PCR_PID : MPET_TS_PSI_PMT_PCR_PID_BITS;
+    uint16_t PCR_PID : MPEG_TS_PSI_PMT_PCR_PID_BITS;
 
-    uint16_t program_info_length : MPET_TS_PSI_PMT_PROGRAM_INFO_LENGTH_BITS;
+    uint16_t program_info_length : MPEG_TS_PSI_PMT_PROGRAM_INFO_LENGTH_BITS;
     uint8_t *program_info_descriptors_data; // Iterpret it as MpegTsDescriptor_t
 
     uint16_t program_elements_length;

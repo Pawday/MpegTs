@@ -1,10 +1,10 @@
 #include <inttypes.h>
 
-#include <mpegts/data/psi/descriptor.h>
-#include <mpegts/data/psi/descriptor_dumper.h>
-#include <mpegts/data/psi/pmt_dumper.h>
-#include <mpegts/data/psi/pmt_stream_element.h>
-#include <mpegts/data/psi/pmt_stream_element_dumper.h>
+#include "mpegts/data/psi/descriptor.h"
+#include "mpegts/data/psi/descriptor_dumper.h"
+#include "mpegts/data/psi/pmt_dumper.h"
+#include "mpegts/data/psi/pmt_stream_element.h"
+#include "mpegts/data/psi/pmt_stream_element_dumper.h"
 
 void mpeg_ts_dump_pmt_to_stream(MpegTsPMT_t *pmt_to_dump, FILE *stream)
 {

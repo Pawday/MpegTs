@@ -1,5 +1,5 @@
-#include <mpegts/data/psi/descriptor_dumper.h>
-#include <mpegts/data/psi/pmt_stream_element_dumper.h>
+#include "mpegts/data/psi/descriptor_dumper.h"
+#include "mpegts/data/psi/pmt_stream_element_dumper.h"
 
 void mpeg_ts_dump_stream_element_to_stream(MpegTsElementStream_t *element, FILE *output_stream)
 {
@@ -37,7 +37,7 @@ void mpeg_ts_dump_stream_elements_to_stream(uint8_t *program_stream_elements_sta
 
     for (size_t element_index = 0; element_index < elements_amount; element_index++) {
 
-        MpegTsElementStreamMaybe_t element = mpeg_ts_parse_pmt_stream_element_linked(
+        OptionalMpegTsElementStream_t element = mpeg_ts_parse_pmt_stream_element_linked(
             program_stream_elements_start + current_element_data_offset,
             program_elements_data_size - current_element_data_offset);
 

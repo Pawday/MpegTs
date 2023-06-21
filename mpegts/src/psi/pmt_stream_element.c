@@ -1,5 +1,5 @@
-#include <mpegts/data/psi/pmt_stream_element.h>
-#include <mpegts/data/psi/stream_type.h>
+#include "mpegts/data/psi/pmt_stream_element.h"
+#include "mpegts/data/psi/stream_type.h"
 
 size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_size)
 {
@@ -10,7 +10,7 @@ size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_s
 
     while (last_stream_element_had_value && next_stream_element_offset < data_size) {
 
-        MpegTsElementStreamMaybe_t next_stream_element = mpeg_ts_parse_pmt_stream_element_linked(
+        OptionalMpegTsElementStream_t next_stream_element = mpeg_ts_parse_pmt_stream_element_linked(
             element_stream_data + next_stream_element_offset,
             data_size - next_stream_element_offset);
 
@@ -27,17 +27,17 @@ size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_s
     return element_stream_amount_so_far;
 }
 
-MpegTsElementStreamMaybe_t mpeg_ts_parse_pmt_stream_element_linked(uint8_t *element_stream_data,
+OptionalMpegTsElementStream_t mpeg_ts_parse_pmt_stream_element_linked(uint8_t *element_stream_data,
     size_t data_size)
 {
-    const MpegTsElementStreamMaybe_t bad_value = {.has_value = false, .value = {0}};
+    const OptionalMpegTsElementStream_t bad_value = {.has_value = false, .value = {0}};
 
     if (data_size < MPEG_TS_PSI_PMT_STREAM_ELEMENT_DESCRIPTORS_OFFSET)
         return bad_value;
 
     uint8_t stream_type_as_num = element_stream_data[0];
 
-    MpegTsElementStreamMaybe_t ret_val;
+    OptionalMpegTsElementStream_t ret_val;
     ret_val.has_value = true;
 
     MpegTsStreamType_e stream_type = mpeg_ts_int_to_stream_type(stream_type_as_num);

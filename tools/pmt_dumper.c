@@ -9,11 +9,11 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include <mpegts/data/psi/pmt_builder.h>
-#include <mpegts/data/psi/pmt_dumper.h>
-#include <mpegts/packet/inplace_parser.h>
+#include "mpegts/data/psi/pmt_builder.h"
+#include "mpegts/data/psi/pmt_dumper.h"
+#include "mpegts/packet/inplace_parser.h"
 
-#include <net/multicast_socket.h>
+#include "net/multicast_socket.h"
 
 #define MULTICAST_GROUP_CSTR "239.0.0.10"
 #define MULTICAST_GROUP_PORT 1234

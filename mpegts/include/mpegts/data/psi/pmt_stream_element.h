@@ -26,8 +26,8 @@
 typedef struct
 {
     MpegTsStreamType_e stream_type;
-    uint16_t elementary_pid : MPET_TS_PSI_PMT_ELEMENTARY_PID_BITS;
-    uint16_t es_info_length : MPET_TS_PSI_PMT_ES_INFO_LENGTH_BITS;
+    uint16_t elementary_pid : MPEG_TS_PSI_PMT_ELEMENTARY_PID_BITS;
+    uint16_t es_info_length : MPEG_TS_PSI_PMT_ES_INFO_LENGTH_BITS;
     uint8_t *es_info_descriptors_data; // Iterpret it as array of MpegTsDescriptor_t
 
 } MpegTsElementStream_t;
@@ -37,9 +37,9 @@ typedef struct
     bool has_value;
     MpegTsElementStream_t value;
 
-} MpegTsElementStreamMaybe_t;
+} OptionalMpegTsElementStream_t;
 
-MpegTsElementStreamMaybe_t mpeg_ts_parse_pmt_stream_element_linked(uint8_t *element_stream_data,
+OptionalMpegTsElementStream_t mpeg_ts_parse_pmt_stream_element_linked(uint8_t *element_stream_data,
     size_t data_size);
 
 /*

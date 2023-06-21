@@ -1,4 +1,4 @@
-#include <mpegts/data/psi/descriptor_dumper.h>
+#include "mpegts/data/psi/descriptor_dumper.h"
 
 void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
@@ -33,7 +33,7 @@ void mpeg_ts_dump_descriptors_to_stream(uint8_t *first_descriptor_location, size
 
     for (size_t descriptor_index = 0; descriptor_index < descriptors_amount; descriptor_index++) {
 
-        MpegTsDescriptorMaybe_t descriptor = mpeg_ts_psi_parse_descriptor_linked(
+        OptionalMpegTsDescriptor_t descriptor = mpeg_ts_psi_parse_descriptor_linked(
             first_descriptor_location + current_descriptor_data_offset,
             data_length - current_descriptor_data_offset);
 

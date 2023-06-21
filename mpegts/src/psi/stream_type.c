@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <mpegts/data/psi/stream_type.h>
+#include "mpegts/data/psi/stream_type.h"
 
 MpegTsStreamType_e mpeg_ts_int_to_stream_type(uint8_t type)
 {

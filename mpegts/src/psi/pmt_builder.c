@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <memory.h>
 
-#include <mpegts/data/psi/pmt_builder.h>
+#include "mpegts/data/psi/pmt_builder.h"
 
 void mpeg_ts_pmt_builder_init(MpegTsPMTBuilder_t *builder, uint8_t *build_buffer,
     size_t buffer_size)

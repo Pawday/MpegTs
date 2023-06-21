@@ -76,7 +76,7 @@ typedef struct
 {
     bool has_value;
     MpegTsDescriptor_t value;
-} MpegTsDescriptorMaybe_t;
+} OptionalMpegTsDescriptor_t;
 
 MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_int);
 const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_tag);
@@ -84,7 +84,7 @@ const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_ta
 /*
  * Will parse MpegTsDescriptor from buffer with "data" field linked to "buffer"
  */
-MpegTsDescriptorMaybe_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffer,
+OptionalMpegTsDescriptor_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffer,
     size_t buffer_size);
 size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buffer_size);
 
