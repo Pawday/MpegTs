@@ -13,11 +13,11 @@ typedef enum
     PMT_BUILDER_STATE_EMPTY,
     PMT_BUILDER_STATE_TABLE_IS_BUILDING,
     PMT_BUILDER_STATE_TABLE_ASSEMBLED
-} MpegTsPMTAssemblerState_e;
+} MpegTsPMTBuilderState_e;
 
 typedef struct
 {
-    MpegTsPMTAssemblerState_e state;
+    MpegTsPMTBuilderState_e state;
     MpegTsPacketHeader_t last_packet_header;
 
     uint16_t table_length : MPEG_TS_PSI_SECTION_LENGTH_BITS;
