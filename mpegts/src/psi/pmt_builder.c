@@ -1,4 +1,3 @@
-#include "mpegts/data/psi/psi_magics.h"
 #include <assert.h>
 #include <memory.h>
 
@@ -15,7 +14,7 @@ void mpeg_ts_pmt_builder_init(MpegTsPMTBuilder_t *builder, uint8_t *build_buffer
 
 void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder)
 {
-    builder->state = PMT_BUILDER_EMPTY;
+    builder->state = PMT_BUILDER_STATE_EMPTY;
     builder->table_length = 0;
     builder->table_data_put_offset = 0;
 
@@ -86,7 +85,7 @@ static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
 static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *builder,
     MpegTsPacketRef_t *packet)
 {
-    assert(builder->state == PMT_BUILDER_EMPTY);
+    assert(builder->state == PMT_BUILDER_STATE_EMPTY);
     assert(builder->table_data_put_offset == 0);
 
     uint8_t current_packet_payload_offset = 0;
@@ -126,7 +125,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
     if ((flag_len & MPEG_TS_PSI_PMT_SECTION_SYNTAX_INDICATOR_BIT) !=
             MPEG_TS_PSI_PMT_SECTION_SYNTAX_INDICATOR_BIT ||
         (flag_len & MPEG_TS_PSI_PMT_SHOULD_BE_ZERO_BIT) != 0) {
-        return PMT_BUILDER_INVALID_PACKET_REJECTED;
+        return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
     uint16_t section_length = 0;
@@ -143,11 +142,11 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
     section_length |= (length_part_from_byte1 << 8) | length_part_from_byte2;
 
     if (section_length >= MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH) {
-        return PMT_BUILDER_INVALID_PACKET_REJECTED;
+        return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
     if (section_length >= builder->table_data_capacity) {
-        return PMT_BUILDER_NOT_ENOUGHT_MEMORY;
+        return PMT_BUILDER_SEND_STATUS_NOT_ENOUGHT_MEMORY;
     }
 
     bool is_pmt_single_packed =
@@ -173,32 +172,32 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
     builder->table_length = section_length;
 
     if (is_pmt_single_packed) {
-        builder->state = PMT_BUILDER_TABLE_DONE;
-        return PMT_BUILDER_SMALL_TABLE_IS_ASSEMBLED;
+        builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;
+        return PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED;
     } else {
-        builder->state = PMT_BUILDER_TABLE_IS_BUILDING;
-        return PMT_BUILDER_NEED_MORE_PACKETS;
+        builder->state = PMT_BUILDER_STATE_TABLE_IS_BUILDING;
+        return PMT_BUILDER_SEND_STATUS_NEED_MORE_PACKETS;
     }
 }
 
 static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuilder_t *builder,
     MpegTsPacketRef_t *packet)
 {
-    assert(builder->state != PMT_BUILDER_EMPTY);
+    assert(builder->state != PMT_BUILDER_STATE_EMPTY);
     assert(builder->table_data_put_offset != 0);
     assert(builder->table_data_put_offset < builder->table_data_capacity);
     assert(builder->table_length <= builder->table_data_capacity);
 
     if (packet->header.pid != builder->last_packet_header.pid) {
-        return PMT_BUILDER_INVALID_PACKET_REJECTED;
+        return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
     if (packet->header.continuity_counter != builder->last_packet_header.continuity_counter + 1) {
-        return PMT_BUILDER_UNORDERED_PACKET_REJECTED;
+        return PMT_BUILDER_SEND_STATUS_UNORDERED_PACKET_REJECTED;
     }
 
-    if (builder->state == PMT_BUILDER_TABLE_DONE) {
-        return PMT_BUILDER_REDUDANT_PACKET_REJECTED;
+    if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
+        return PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED;
     }
 
     builder->last_packet_header = packet->header;
@@ -209,32 +208,32 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
 
     if (data_to_send > remainding_data) {
         data_to_send = remainding_data;
-        builder->state = PMT_BUILDER_TABLE_DONE;
+        builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;
     }
 
     memcpy(builder->table_data + builder->table_data_put_offset, packet->data, data_to_send);
 
     builder->table_data_put_offset += data_to_send;
 
-    if (builder->state == PMT_BUILDER_TABLE_DONE) {
+    if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         assert(builder->table_data_put_offset == builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
-        return PMT_BUILDER_TABLE_IS_ASSEMBLED;
+        return PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED;
     }
 
-    return PMT_BUILDER_NEED_MORE_PACKETS;
+    return PMT_BUILDER_SEND_STATUS_NEED_MORE_PACKETS;
 }
 
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMTBuilder_t *builder,
     MpegTsPacketRef_t *packet)
 {
 
-    if (builder->state == PMT_BUILDER_TABLE_DONE) {
-        return PMT_BUILDER_REDUDANT_PACKET_REJECTED;
+    if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
+        return PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED;
     }
 
-    if (builder->state == PMT_BUILDER_EMPTY) {
+    if (builder->state == PMT_BUILDER_STATE_EMPTY) {
         if (!is_start_pmt_packet(packet)) {
-            return PMT_BUILDER_INVALID_PACKET_REJECTED;
+            return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
         }
 
         return send_first_packet(builder, packet);

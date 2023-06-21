@@ -2,18 +2,12 @@
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <memory.h>
 #include <netinet/in.h>
 #include <sched.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/resource.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 #include <mpegts/data/psi/pmt_builder.h>
 #include <mpegts/data/psi/pmt_dumper.h>
@@ -108,7 +102,7 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
         return PARSE_NO_DATA;
     }
 
-    if (pmt_builder->state == PMT_BUILDER_TABLE_DONE) {
+    if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         OptionalMpegTsPMT_t program_map_table = mpeg_ts_pmt_builder_try_build_table(pmt_builder);
 
         if (program_map_table.has_value) {
@@ -129,7 +123,7 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
 
         MpegTsPacketRef_t packet_ref = packet_refs[parsed_packet_index];
 
-        if (pmt_builder->state == PMT_BUILDER_TABLE_IS_BUILDING) {
+        if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_IS_BUILDING) {
             if (pmt_builder->last_packet_header.pid != packet_ref.header.pid) {
                 continue;
             }
@@ -140,17 +134,17 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
 
         switch (send_status) {
 
-        case PMT_BUILDER_SMALL_TABLE_IS_ASSEMBLED:
-        case PMT_BUILDER_TABLE_IS_ASSEMBLED:
+        case PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED:
+        case PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED:
             return PARSE_OK;
-        case PMT_BUILDER_NEED_MORE_PACKETS:
+        case PMT_BUILDER_SEND_STATUS_NEED_MORE_PACKETS:
             continue;
-        case PMT_BUILDER_UNORDERED_PACKET_REJECTED:
+        case PMT_BUILDER_SEND_STATUS_UNORDERED_PACKET_REJECTED:
             continue;
-        case PMT_BUILDER_REDUDANT_PACKET_REJECTED:
+        case PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED:
             mpeg_ts_pmt_builder_reset(pmt_builder);
             continue;
-        case PMT_BUILDER_NOT_ENOUGHT_MEMORY:
+        case PMT_BUILDER_SEND_STATUS_NOT_ENOUGHT_MEMORY:
             return PARSE_NO_MEM_ERROR;
         default:
             break;
