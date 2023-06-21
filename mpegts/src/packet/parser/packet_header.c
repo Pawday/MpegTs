@@ -5,7 +5,7 @@
 #include <mpegts/packet/packet_header.h>
 
 
-OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(uint8_t *buffer, size_t buffer_size)
+OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(const uint8_t *buffer, size_t buffer_size)
 {
     const OptionalMpegTsPacketHeader_t bad_value = {.has_balue = false, .value = {0}};
 

@@ -6,7 +6,7 @@ typedef struct
     bool has_value;
 } OptionalByteLocation_t;
 
-static OptionalByteLocation_t find_first_sync_byte(uint8_t *buffer, size_t buffer_size)
+static OptionalByteLocation_t find_first_sync_byte(const uint8_t *buffer, size_t buffer_size)
 {
     size_t current_sync_byte_location = 0;
     bool sync_byte_found = false;
@@ -67,10 +67,10 @@ size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
     size_t packets_parsed_so_far = 0;
     size_t next_packet_location_offset = 0;
 
-    OptionalByteLocation_t next_packet_location_offset_maybe = {0};
-
     while (packets_parsed_so_far < packet_ref_array_size &&
            next_packet_location_offset < buffer_size) {
+
+        OptionalByteLocation_t next_packet_location_offset_maybe;
 
         next_packet_location_offset_maybe =
             find_first_sync_byte(buffer + next_packet_location_offset,

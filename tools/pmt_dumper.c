@@ -83,7 +83,6 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
 
     ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, parse_buffer);
     static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
-    static uint32_t last_table_crc = 0;
 
     if (bytes_recvd_or_err < 0) {
 
@@ -113,6 +112,8 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
         OptionalMpegTsPMT_t program_map_table = mpeg_ts_pmt_builder_try_build_table(pmt_builder);
 
         if (program_map_table.has_value) {
+
+            static uint32_t last_table_crc = 0;
 
             if (last_table_crc != program_map_table.value.CRC) {
                 mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
