@@ -11,7 +11,7 @@
 
 #include "mpegts/data/pmt_builder.h"
 #include "mpegts/data/pmt_dumper.h"
-#include "mpegts/packet/inplace_parser.h"
+#include "mpegts/packet/packet_inplace_parser.h"
 
 #include "net/multicast_socket.h"
 
