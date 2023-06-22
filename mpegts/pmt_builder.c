@@ -433,7 +433,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
 
     value_ref->program_info_length |= table_data[11];
 
-    value_ref->program_info_descriptors_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
+    value_ref->program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
 
     uint8_t *elements_stream_data =
         table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + value_ref->program_info_length;

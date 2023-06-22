@@ -26,7 +26,7 @@ typedef struct
     uint16_t PCR_PID : MPEG_TS_PSI_PMT_PCR_PID_BITS;
 
     uint16_t program_info_length : MPEG_TS_PSI_PMT_PROGRAM_INFO_LENGTH_BITS;
-    uint8_t *program_info_descriptors_data; // Iterpret it as MpegTsDescriptor_t
+    uint8_t *program_info_data; // Iterpret it as array of MpegTsDescriptor_t
 
     uint16_t program_elements_length;
     uint8_t *program_elements; // Iterpret it as array of MpegTsElementStream_t
