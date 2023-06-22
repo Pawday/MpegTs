@@ -42,6 +42,9 @@ char *parse_status_to_string(PerformParseStatus_e status)
     }
 }
 
+static MpegTsPacket_t packet_refs[PACKETS_REFS_AMOUNT];
+static uint32_t last_table_crc = 0;
+
 PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, uint8_t *parse_buffer,
     size_t parse_buffer_size, MpegTsPMTBuilder_t *pmt_builder)
 {
@@ -56,12 +59,10 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, uint8_t *parse
         return PARSE_NET_ERROR;
     }
 
-    static MpegTsPacket_t packet_refs[PACKETS_REFS_COUNT];
-
     size_t bytes_recvd = bytes_recvd_or_err;
 
     size_t linked_packets_count =
-        mpeg_ts_parse_packets_inplace(parse_buffer, bytes_recvd, packet_refs, PACKETS_REFS_COUNT);
+        mpeg_ts_parse_packets_inplace(parse_buffer, bytes_recvd, packet_refs, PACKETS_REFS_AMOUNT);
     if (linked_packets_count == 0) {
         return PARSE_NO_DATA;
     }
@@ -69,7 +70,6 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, uint8_t *parse
     if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         OptionalMpegTsPMT_t program_map_table = mpeg_ts_pmt_builder_try_build_table(pmt_builder);
         if (program_map_table.has_value) {
-            static uint32_t last_table_crc = 0;
             if (last_table_crc != program_map_table.value.CRC) {
                 mpeg_ts_dump_pmt_to_stream(&program_map_table.value, stdout);
                 printf("\n");
@@ -134,14 +134,14 @@ int main(void)
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
     }
-    bool setup_timeout_status = multicast_socket_set_timeout_seconds(&msock, NET_TIMOUT_SECONDS);
+    bool setup_timeout_status = multicast_socket_set_timeout_seconds(&msock, NET_TIMEOUT_SECONDS);
     if (!setup_timeout_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
     }
-    in_addr_t mutlicast_group = inet_addr(MULTICAST_GROUP);
+    in_addr_t multicast_group = inet_addr(MULTICAST_GROUP);
     int bind_status =
-        multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), mutlicast_group);
+        multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), multicast_group);
     if (!bind_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
@@ -160,12 +160,11 @@ int main(void)
     while (listen_loop_enabled) {
 
         if (process_terminate_requested) {
-            listen_loop_enabled = false;
             end_service_status = END_SERVICE_SIGTERM;
-            continue;
+            break;
         }
 
-        if (timeout_err_counter >= SCHED_SWITCH_REQUEST_BOUND) {
+        if (timeout_err_counter >= SCHED_SWITCH_REQUEST_LIMIT) {
             timeout_err_counter = 0;
             sched_yield();
             continue;
@@ -182,16 +181,14 @@ int main(void)
             timeout_err_counter++;
             continue;
         case PARSE_NET_INTERUPTED:
-            listen_loop_enabled = false;
             end_service_status = END_SERVICE_SIGTERM;
-            continue;
+            break;
         case PARSE_NET_ERROR:
         case PARSE_NO_MEM_ERROR:
         case PARSE_DATA_FORMAT_ERROR:
         default:
-            listen_loop_enabled = false;
             end_service_status = END_SERVICE_INTERNAL_ERROR;
-            continue;
+            break;
         }
     }
 
@@ -201,17 +198,14 @@ end_service:
 
     switch (end_service_status) {
 
-    case END_SERVICE_OK:
-        printf("[INFO] Exiting normaly\n");
-        return 0;
     case END_SERVICE_SIGTERM:
-        printf("\n[INFO] Terminating normaly\n");
+        printf("\n[INFO] Process terminated\n");
+    case END_SERVICE_OK:
         return 0;
     case END_SERVICE_FAIL_SETUP:
         printf("[ERROR] Fail setup\n");
         return -1;
     case END_SERVICE_INTERNAL_ERROR:
-        assert(last_parse_status != PARSE_OK);
         printf("[ERROR] Internal error: %s\n", parse_status_to_string(last_parse_status));
         return -1;
     case END_SERVICE_UNKNOWN_ERROR:
