@@ -48,12 +48,12 @@ OptionalMpegTsPacketRef_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t b
     OptionalMpegTsPacketRef_t ret_val;
     ret_val.has_value = true;
     ret_val.value.header = packet_header_maybe.value;
-    ret_val.value.data = packet_location + MPEG_TS_PACKET_HEADER_SIZE;
+    ret_val.value.payload = packet_location + MPEG_TS_PACKET_HEADER_SIZE;
     return ret_val;
 }
 
 size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
-    MpegTsPacketRef_t *packet_ref_array, size_t packet_ref_array_size)
+    MpegTsPacket_t *packet_ref_array, size_t packet_ref_array_size)
 {
     size_t packets_parsed_so_far = 0;
     size_t next_packet_location_offset = 0;

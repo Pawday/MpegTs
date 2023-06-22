@@ -94,16 +94,16 @@ bool multicast_socket_bind_to_any(MulticastSocket_t *multicast_socket, uint16_t 
     return multicast_socket_bind_to(multicast_socket, INADDR_ANY, bind_port, multicast_group);
 }
 
-ssize_t multicast_socket_recv(MulticastSocket_t *sock, struct iovec span)
+ssize_t multicast_socket_recv(MulticastSocket_t *sock, uint8_t *recv_buffer, size_t recv_buffer_size)
 {
-    if (span.iov_len == 0) {
+    if (recv_buffer_size == 0) {
         return -ENOMEM;
     }
 
     socklen_t bind_point_struct_size_val = sizeof(sock->bind_point);
     ssize_t readen_or_err = recvfrom(sock->socket_fd,
-        span.iov_base,
-        span.iov_len,
+        recv_buffer,
+        recv_buffer_size,
         0,
         (struct sockaddr *)&sock->bind_point,
         &bind_point_struct_size_val);

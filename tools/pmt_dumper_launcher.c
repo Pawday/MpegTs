@@ -42,10 +42,10 @@ char *parse_status_to_string(PerformParseStatus_e status)
     }
 }
 
-PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec parse_buffer,
-    MpegTsPMTBuilder_t *pmt_builder)
+PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, uint8_t *parse_buffer,
+    size_t parse_buffer_size, MpegTsPMTBuilder_t *pmt_builder)
 {
-    ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, parse_buffer);
+    ssize_t bytes_recvd_or_err = multicast_socket_recv(socket, parse_buffer, parse_buffer_size);
     if (bytes_recvd_or_err < 0) {
         if (bytes_recvd_or_err == -EAGAIN) {
             return PARSE_NET_TIMEOUT;
@@ -56,14 +56,12 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
         return PARSE_NET_ERROR;
     }
 
-    static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
+    static MpegTsPacket_t packet_refs[PACKETS_REFS_COUNT];
 
     size_t bytes_recvd = bytes_recvd_or_err;
 
-    size_t linked_packets_count = mpeg_ts_parse_packets_inplace(parse_buffer.iov_base,
-        bytes_recvd,
-        packet_refs,
-        PACKETS_REFS_COUNT);
+    size_t linked_packets_count =
+        mpeg_ts_parse_packets_inplace(parse_buffer, bytes_recvd, packet_refs, PACKETS_REFS_COUNT);
     if (linked_packets_count == 0) {
         return PARSE_NO_DATA;
     }
@@ -84,7 +82,7 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
     for (size_t parsed_packet_index = 0; parsed_packet_index < linked_packets_count;
          parsed_packet_index++) {
 
-        MpegTsPacketRef_t packet_ref = packet_refs[parsed_packet_index];
+        MpegTsPacket_t packet_ref = packet_refs[parsed_packet_index];
 
         if (pmt_builder->state == PMT_BUILDER_STATE_TABLE_IS_BUILDING &&
             pmt_builder->last_packet_header.pid != packet_ref.header.pid) {
@@ -136,17 +134,12 @@ int main(void)
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
     }
-
     bool setup_timeout_status = multicast_socket_set_timeout_seconds(&msock, NET_TIMOUT_SECONDS);
     if (!setup_timeout_status) {
         end_service_status = END_SERVICE_FAIL_SETUP;
         goto end_service;
     }
-
-    PerformParseStatus_e last_parse_status = PARSE_OK;
-
     in_addr_t mutlicast_group = inet_addr(MULTICAST_GROUP);
-
     int bind_status =
         multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), mutlicast_group);
     if (!bind_status) {
@@ -154,12 +147,9 @@ int main(void)
         goto end_service;
     }
 
+    PerformParseStatus_e last_parse_status = PARSE_OK;
     uint8_t parse_buffer[PARSE_BUFFER_SIZE];
     memset(parse_buffer, 0, PARSE_BUFFER_SIZE);
-    struct iovec parse_buffer_handle;
-    parse_buffer_handle.iov_base = parse_buffer;
-    parse_buffer_handle.iov_len = PARSE_BUFFER_SIZE;
-
     uint8_t pmt_build_buffer[PMT_BUILD_BUFFER_SIZE];
     memset(pmt_build_buffer, 0, PMT_BUILD_BUFFER_SIZE);
     MpegTsPMTBuilder_t pmt_builder;
@@ -181,7 +171,8 @@ int main(void)
             continue;
         }
 
-        last_parse_status = perform_PMT_parse(&msock, parse_buffer_handle, &pmt_builder);
+        last_parse_status =
+            perform_PMT_parse(&msock, parse_buffer, PARSE_BUFFER_SIZE, &pmt_builder);
         switch (last_parse_status) {
         case PARSE_OK:
         case PARSE_NO_DATA:

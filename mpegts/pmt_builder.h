@@ -44,7 +44,7 @@ void mpeg_ts_pmt_builder_init(MpegTsPMTBuilder_t *builder, uint8_t *build_buffer
 void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder);
 
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(
-    MpegTsPMTBuilder_t *builder, MpegTsPacketRef_t *packet);
+    MpegTsPMTBuilder_t *builder, MpegTsPacket_t *packet);
 
 
 OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder);

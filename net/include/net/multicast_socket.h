@@ -31,7 +31,7 @@ bool multicast_socket_bind_to_any(MulticastSocket_t *multicast_socket, uint16_t 
 /*
  * can return -errno
  */
-ssize_t multicast_socket_recv(MulticastSocket_t *sock, struct iovec span);
+ssize_t multicast_socket_recv(MulticastSocket_t *sock, uint8_t *recv_buffer, size_t recv_buffer_size);
 
 void multicast_socket_close(MulticastSocket_t *socket);
 

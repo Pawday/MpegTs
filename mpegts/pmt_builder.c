@@ -23,7 +23,7 @@ void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder)
     builder->last_packet_header = empty_header;
 }
 
-static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
+static bool is_start_pmt_packet(MpegTsPacket_t *packet)
 {
     if (packet->header.pid == MPEG_TS_NULL_PACKET_PID ||
         packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_ONLY) {
@@ -36,22 +36,22 @@ static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
 
     uint8_t current_packet_adapt_field_length = 0;
     if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_WITH_PAYLOAD) {
-        current_packet_adapt_field_length += packet->data[0];
+        current_packet_adapt_field_length += packet->payload[0];
     }
 
     bool is_PES_packet_at_start = true;
     if (is_PES_packet_at_start) {
 
-        is_PES_packet_at_start &= packet->data[current_packet_adapt_field_length] == 0;
+        is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length] == 0;
         //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         //                                 can be PSI pointer_field
     }
     if (is_PES_packet_at_start) {
         // can be PAS table_id if pointer_field == 0
-        is_PES_packet_at_start &= packet->data[current_packet_adapt_field_length + 1] == 0;
+        is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length + 1] == 0;
     }
     if (is_PES_packet_at_start) {
-        is_PES_packet_at_start &= packet->data[current_packet_adapt_field_length + 2] == 1;
+        is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length + 2] == 1;
     }
     // actualy it can be PAS table if pointer_field (packet->data[0]) is 0
     // Filters above cannot distinct PES and PAS
@@ -61,7 +61,7 @@ static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
     }
 
     uint8_t section_offset =
-        packet->data[current_packet_adapt_field_length]; // aka PSI pointer_field
+        packet->payload[current_packet_adapt_field_length]; // aka PSI pointer_field
     section_offset += 1;                                 // include itself to make offset
 
     /*
@@ -74,7 +74,7 @@ static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
      *   table_id
      *    (0x02)
      */
-    uint8_t *section_data = packet->data + section_offset + current_packet_adapt_field_length;
+    uint8_t *section_data = packet->payload + section_offset + current_packet_adapt_field_length;
 
     if (section_data[0] != MPEG_TS_PSI_PMT_SECTION_ID) {
         return false;
@@ -84,17 +84,17 @@ static bool is_start_pmt_packet(MpegTsPacketRef_t *packet)
 }
 
 static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacketRef_t *packet)
+    MpegTsPacket_t *packet)
 {
     assert(builder->state == PMT_BUILDER_STATE_EMPTY);
     assert(builder->table_data_put_offset == 0);
 
     uint8_t current_packet_payload_offset = 0;
     if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_WITH_PAYLOAD) {
-        current_packet_payload_offset += packet->data[0];
+        current_packet_payload_offset += packet->payload[0];
     }
 
-    uint8_t section_offset = packet->data[current_packet_payload_offset]; // aka PSI pointer_field
+    uint8_t section_offset = packet->payload[current_packet_payload_offset]; // aka PSI pointer_field
     section_offset += 1; // include itself to make offset
 
     /*
@@ -111,7 +111,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
      *   section_syntax_indicator
      *        (should be set)
      */
-    uint8_t *section_data = packet->data + section_offset + current_packet_payload_offset;
+    uint8_t *section_data = packet->payload + section_offset + current_packet_payload_offset;
 
     /*
      *
@@ -159,7 +159,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
 
     if (section_length < mpeg_ts_payload_or_section_size) {
         mpeg_ts_payload_or_section_size =
-            section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_LAST_BYTE_OFFSET;
+            section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_LSB_OFFSET;
     }
 
     memcpy(builder->table_data + builder->table_data_put_offset,
@@ -182,7 +182,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
 }
 
 static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacketRef_t *packet)
+    MpegTsPacket_t *packet)
 {
     assert(builder->state != PMT_BUILDER_STATE_EMPTY);
     assert(builder->table_data_put_offset != 0);
@@ -211,7 +211,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
         builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;
     }
 
-    memcpy(builder->table_data + builder->table_data_put_offset, packet->data, data_to_send);
+    memcpy(builder->table_data + builder->table_data_put_offset, packet->payload, data_to_send);
 
     builder->table_data_put_offset += data_to_send;
 
@@ -225,7 +225,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
 }
 
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacketRef_t *packet)
+    MpegTsPacket_t *packet)
 {
     if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         return PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED;
@@ -399,7 +399,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *        ^^^^^ -select this than shift it left by 8 bits than merge to PCR_PID MSB
      */
 
-    value_ref->PCR_PID |= (table_data[8] & MPEG_TS_PSI_PMT_PCR_PID_MSB_BYTE_MASK) << 8;
+    value_ref->PCR_PID |= (table_data[8] & MPEG_TS_PSI_PMT_PCR_PID_MSB_MASK) << 8;
 
     /*
      * table_data:
@@ -424,7 +424,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
     value_ref->program_info_length = 0;
 
     value_ref->program_info_length |=
-        (table_data[10] & MPEG_TS_PSI_PMT_PROGRAM_INFO_LENGTH_BYTE_0_MASK) << 8;
+        (table_data[10] & MPEG_TS_PSI_PMT_PROGRAM_INFO_LENGTH_MSB_MASK) << 8;
 
     value_ref->program_info_length |= table_data[11];
 
