@@ -1,4 +1,6 @@
 #include "descriptor_dumper.h"
+#include "descriptor_parser.h"
+
 #include "pmt_stream_element_dumper.h"
 
 void mpeg_ts_dump_stream_element_to_stream(MpegTsElementStream_t *element, FILE *output_stream)
