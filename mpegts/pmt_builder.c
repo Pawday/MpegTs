@@ -62,7 +62,7 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
 
     uint8_t section_offset =
         packet->payload[current_packet_adapt_field_length]; // aka PSI pointer_field
-    section_offset += 1;                                 // include itself to make offset
+    section_offset += 1;                                    // include itself to make offset
 
     /*
      * section_data:
@@ -94,8 +94,9 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
         current_packet_payload_offset += packet->payload[0];
     }
 
-    uint8_t section_offset = packet->payload[current_packet_payload_offset]; // aka PSI pointer_field
-    section_offset += 1; // include itself to make offset
+    uint8_t section_offset =
+        packet->payload[current_packet_payload_offset]; // aka PSI pointer_field
+    section_offset += 1;                                // include itself to make offset
 
     /*
      * section_data:
@@ -245,6 +246,10 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
 {
 
     const OptionalMpegTsPMT_t bad_value = {.has_value = false, .value = {0}};
+
+    if (builder->state != PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
+        return bad_value;
+    }
 
     /*
      * table_data:

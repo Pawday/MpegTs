@@ -94,11 +94,11 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, uint8_t *parse
         switch (send_status) {
         case PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED:
         case PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED:
+        case PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED:
             return PARSE_OK;
         case PMT_BUILDER_SEND_STATUS_NEED_MORE_PACKETS:
             continue;
         case PMT_BUILDER_SEND_STATUS_UNORDERED_PACKET_REJECTED:
-        case PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED:
             mpeg_ts_pmt_builder_reset(pmt_builder);
             continue;
         case PMT_BUILDER_SEND_STATUS_NOT_ENOUGHT_MEMORY:
