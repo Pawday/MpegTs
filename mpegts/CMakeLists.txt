@@ -5,16 +5,16 @@ add_library(MpegTS OBJECT)
 
 
 target_sources(MpegTS PRIVATE
-	src/packet_header_parser.c
-	src/packet_inplace_parser.c
-	src/descriptor_converters.c
-	src/descriptor_dumper.c
-	src/descriptor_parser.c
-	src/pmt_builder.c
-	src/pmt_dumper.c
-	src/pmt_stream_element.c
-	src/pmt_stream_element_dumper.c
-	src/stream_type.c
+	packet_header_parser.c
+	packet_inplace_parser.c
+	descriptor_converters.c
+	descriptor_dumper.c
+	descriptor_parser.c
+	pmt_builder.c
+	pmt_dumper.c
+	pmt_stream_element.c
+	pmt_stream_element_dumper.c
+	stream_type.c
 	)
 
 
