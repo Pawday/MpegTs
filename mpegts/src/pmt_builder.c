@@ -399,7 +399,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *        ^^^^^ -select this than shift it left by 8 bits than merge to PCR_PID MSB
      */
 
-    value_ref->PCR_PID |= (table_data[8] & MPEG_TS_PSI_PMT_PCR_PID_BYTE_0_MASK) << 8;
+    value_ref->PCR_PID |= (table_data[8] & MPEG_TS_PSI_PMT_PCR_PID_MSB_BYTE_MASK) << 8;
 
     /*
      * table_data:

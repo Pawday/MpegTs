@@ -1,10 +1,5 @@
 #include "mpegts/packet_inplace_parser.h"
 
-typedef struct
-{
-    size_t value;
-    bool has_value;
-} OptionalByteLocation_t;
 
 static OptionalByteLocation_t find_first_sync_byte(const uint8_t *buffer, size_t buffer_size)
 {

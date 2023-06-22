@@ -4,6 +4,13 @@
 
 #include "mpegts/packet.h"
 
+
+typedef struct
+{
+    size_t value;
+    bool has_value;
+} OptionalByteLocation_t;
+
 OptionalMpegTsPacketRef_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t buffer_size);
 
 size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,

@@ -9,43 +9,15 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include "mpegts/packet_inplace_parser.h"
 #include "mpegts/pmt_builder.h"
 #include "mpegts/pmt_dumper.h"
-#include "mpegts/packet_inplace_parser.h"
 
 #include "net/multicast_socket.h"
 
-#define MULTICAST_GROUP_CSTR "239.0.0.10"
-#define MULTICAST_GROUP_PORT 1234
-
-#define NET_TIMOUT_SECONDS         2
-#define SCHED_SWITCH_REQUEST_BOUND 20
-#define PARSE_BUFFER_SIZE          1024
-#define PMT_BUILD_BUFFER_SIZE      MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH
-#define PACKETS_REFS_COUNT         10
+#include "pmt_dumper_launcher.h"
 
 bool process_terminate_requested = false;
-
-typedef enum EndServiceStatus_e
-{
-    END_SERVICE_OK,
-    END_SERVICE_SIGTERM,
-    END_SERVICE_FAIL_SETUP,
-    END_SERVICE_INTERNAL_ERROR,
-    END_SERVICE_UNKNOWN_ERROR,
-} EndServiceStatus_e;
-
-typedef enum PerformParseStatus_e
-{
-    PARSE_OK,
-    PARSE_OK_WITHOUT_ACTION,
-    PARSE_NO_DATA,
-    PARSE_NET_TIMEOUT,
-    PARSE_NET_ERROR,
-    PARSE_NET_INTERUPTED,
-    PARSE_NO_MEM_ERROR,
-    PARSE_DATA_FORMAT_ERROR,
-} PerformParseStatus_e;
 
 char *parse_status_to_string(PerformParseStatus_e status)
 {
@@ -83,7 +55,6 @@ PerformParseStatus_e perform_PMT_parse(MulticastSocket_t *socket, struct iovec p
         }
         return PARSE_NET_ERROR;
     }
-
 
     static MpegTsPacketRef_t packet_refs[PACKETS_REFS_COUNT];
 
@@ -174,7 +145,7 @@ int main(void)
 
     PerformParseStatus_e last_parse_status = PARSE_OK;
 
-    in_addr_t mutlicast_group = inet_addr(MULTICAST_GROUP_CSTR);
+    in_addr_t mutlicast_group = inet_addr(MULTICAST_GROUP);
 
     int bind_status =
         multicast_socket_bind_to_any(&msock, htons(MULTICAST_GROUP_PORT), mutlicast_group);
