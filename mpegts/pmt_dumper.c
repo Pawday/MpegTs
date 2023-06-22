@@ -1,10 +1,10 @@
 #include <inttypes.h>
 
-#include "mpegts/descriptor.h"
-#include "mpegts/descriptor_dumper.h"
-#include "mpegts/pmt_dumper.h"
-#include "mpegts/pmt_stream_element.h"
-#include "mpegts/pmt_stream_element_dumper.h"
+#include "descriptor.h"
+#include "descriptor_dumper.h"
+#include "pmt_dumper.h"
+#include "pmt_stream_element.h"
+#include "pmt_stream_element_dumper.h"
 
 void mpeg_ts_dump_pmt_to_stream(MpegTsPMT_t *pmt_to_dump, FILE *stream)
 {

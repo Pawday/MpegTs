@@ -1,4 +1,4 @@
-#include "mpegts/packet_inplace_parser.h"
+#include "packet_inplace_parser.h"
 
 
 static OptionalByteLocation_t find_first_sync_byte(const uint8_t *buffer, size_t buffer_size)

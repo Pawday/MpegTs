@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "mpegts/packet.h"
+#include "packet.h"
 
 
 typedef struct
