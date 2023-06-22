@@ -450,10 +450,10 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
     uint16_t full_section_length = section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET;
 
     // in MSBF order
-    uint8_t CRC_byte_0 = table_data[full_section_length - 3];
-    uint8_t CRC_byte_1 = table_data[full_section_length - 2];
-    uint8_t CRC_byte_2 = table_data[full_section_length - 1];
-    uint8_t CRC_byte_3 = table_data[full_section_length - 0];
+    uint8_t CRC_byte_0 = table_data[full_section_length - 4];
+    uint8_t CRC_byte_1 = table_data[full_section_length - 3];
+    uint8_t CRC_byte_2 = table_data[full_section_length - 2];
+    uint8_t CRC_byte_3 = table_data[full_section_length - 1];
 
     value_ref->CRC = 0;
     value_ref->CRC |= CRC_byte_0 << (8 * 3);
