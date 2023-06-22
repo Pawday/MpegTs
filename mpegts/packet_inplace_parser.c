@@ -53,12 +53,12 @@ OptionalMpegTsPacketRef_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t b
 }
 
 size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
-    MpegTsPacket_t *packet_ref_array, size_t packet_ref_array_size)
+    MpegTsPacket_t *packets_array, size_t packets_array_size)
 {
     size_t packets_parsed_so_far = 0;
     size_t next_packet_location_offset = 0;
 
-    while (packets_parsed_so_far < packet_ref_array_size &&
+    while (packets_parsed_so_far < packets_array_size &&
            next_packet_location_offset < buffer_size) {
 
         OptionalByteLocation_t next_packet_location_offset_maybe;
@@ -78,7 +78,7 @@ size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
             break;
         }
 
-        packet_ref_array[packets_parsed_so_far] = next_packet_ref.value;
+        packets_array[packets_parsed_so_far] = next_packet_ref.value;
 
         packets_parsed_so_far++;
     }

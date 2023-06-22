@@ -378,14 +378,13 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *    |byte7 |
      *  0b00000000 - last_section_number ("shall be set to zero")
      */
-
     if (table_data[7] != 0) {
         return bad_value;
     }
 
     /*
      * table_data:
-     *    |byte8   |byte9 |
+     *    |byte8  ||byte9 |
      *  0b000_0000000000000
      *     ^        ^
      *     |        |
@@ -399,7 +398,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
 
     /*
      * table_data:
-     *    |byte8   |
+     *    |byte8  |
      *  0b000_0000000000000
      *        ^^^^^ -select this than shift it left by 8 bits than merge to PCR_PID MSB
      */
@@ -408,16 +407,15 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
 
     /*
      * table_data:
-     *    |byte8   |byte9 |
+     *    |byte8  ||byte9 |
      *  0b000_0000000000000
      *             ^^^^^^^^ - merge it to PCR_PID LSB
      */
-
     value_ref->PCR_PID |= table_data[9];
 
     /*
      * table_data:
-     *    |byte10||byte11|
+     *    |byte10 ||byte11|
      *  0b0000_000000000000
      *     ^        ^
      *     |        |
@@ -425,7 +423,6 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *     |
      *     +---- reserved
      */
-
     value_ref->program_info_length = 0;
 
     value_ref->program_info_length |=
