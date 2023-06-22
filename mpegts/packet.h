@@ -15,5 +15,5 @@ typedef struct
 {
     MpegTsPacket_t value;
     bool has_value;
-} OptionalMpegTsPacketRef_t;
+} OptionalMpegTsPacket_t;
 
