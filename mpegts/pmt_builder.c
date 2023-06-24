@@ -156,7 +156,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
                                                    current_packet_payload_offset +
                                                    MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
 
-    size_t mpeg_ts_payload_or_section_size = MPEG_TS_PACKET_PAYLOAD_SIZE;
+    uint16_t mpeg_ts_payload_or_section_size = MPEG_TS_PACKET_PAYLOAD_SIZE;
 
     if (section_length < mpeg_ts_payload_or_section_size) {
         mpeg_ts_payload_or_section_size =
@@ -204,8 +204,8 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
 
     builder->last_packet_header = packet->header;
 
-    size_t data_to_send = MPEG_TS_PACKET_PAYLOAD_SIZE;
-    size_t remainding_data = (builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) -
+    uint16_t data_to_send = MPEG_TS_PACKET_PAYLOAD_SIZE;
+    uint16_t remainding_data = (builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) -
                              builder->table_data_put_offset;
     if (data_to_send > remainding_data) {
         data_to_send = remainding_data;
