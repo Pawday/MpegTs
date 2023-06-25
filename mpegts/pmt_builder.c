@@ -26,7 +26,7 @@ void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder)
 static bool is_start_pmt_packet(MpegTsPacket_t *packet)
 {
     if (packet->header.pid == MPEG_TS_NULL_PACKET_PID ||
-        packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_ONLY) {
+        packet->header.adaptation_field_control == ADAPTATION_FIELD_ONLY) {
         return false;
     }
 
@@ -35,7 +35,7 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
     }
 
     uint8_t current_packet_adapt_field_length = 0;
-    if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_WITH_PAYLOAD) {
+    if (packet->header.adaptation_field_control == ADAPTATION_FIELD_AND_PAYLOAD) {
         current_packet_adapt_field_length += packet->payload[0];
     }
 
@@ -74,7 +74,8 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
      *   table_id
      *    (0x02)
      */
-    uint8_t *section_data = packet->payload + section_offset + current_packet_adapt_field_length;
+    const uint8_t *section_data =
+        packet->payload + section_offset + current_packet_adapt_field_length;
 
     if (section_data[0] != MPEG_TS_PSI_PMT_SECTION_ID) {
         return false;
@@ -90,7 +91,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
     assert(builder->table_data_put_offset == 0);
 
     uint8_t current_packet_payload_offset = 0;
-    if (packet->header.adaptation_field_control == MPEG_TS_ADAPT_CONTROL_WITH_PAYLOAD) {
+    if (packet->header.adaptation_field_control == ADAPTATION_FIELD_AND_PAYLOAD) {
         current_packet_payload_offset += packet->payload[0];
     }
 
@@ -112,7 +113,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
      *   section_syntax_indicator
      *        (should be set)
      */
-    uint8_t *section_data = packet->payload + section_offset + current_packet_payload_offset;
+    const uint8_t *section_data = packet->payload + section_offset + current_packet_payload_offset;
 
     /*
      *
@@ -206,7 +207,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
 
     uint16_t data_to_send = MPEG_TS_PACKET_PAYLOAD_SIZE;
     uint16_t remainding_data = (builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) -
-                             builder->table_data_put_offset;
+                               builder->table_data_put_offset;
     if (data_to_send > remainding_data) {
         data_to_send = remainding_data;
         builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;

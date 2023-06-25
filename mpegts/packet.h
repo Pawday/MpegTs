@@ -8,7 +8,7 @@
 typedef struct
 {
     MpegTsPacketHeader_t header;
-    uint8_t *payload;
+    const uint8_t *payload;
 } MpegTsPacket_t;
 
 typedef struct

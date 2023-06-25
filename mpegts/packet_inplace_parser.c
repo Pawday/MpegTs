@@ -19,7 +19,7 @@ static OptionalByteLocation_t find_first_sync_byte(const uint8_t *buffer, size_t
     return ret_val;
 }
 
-OptionalMpegTsPacket_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t buffer_size)
+OptionalMpegTsPacket_t mpeg_ts_parse_packet_inplace(const uint8_t *buffer, size_t buffer_size)
 {
     const OptionalMpegTsPacket_t bad_value = {.has_value = false, .value = {0}};
 
@@ -37,7 +37,7 @@ OptionalMpegTsPacket_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t buff
         return bad_value;
     }
 
-    uint8_t *packet_location = buffer + sync_byte_location;
+    const uint8_t *packet_location = buffer + sync_byte_location;
 
     OptionalMpegTsPacketHeader_t optional_packet_header =
         mpeg_ts_parse_packet_header(packet_location, MPEG_TS_PACKET_SIZE);
@@ -52,7 +52,7 @@ OptionalMpegTsPacket_t mpeg_ts_parse_packet_inplace(uint8_t *buffer, size_t buff
     return ret_val;
 }
 
-size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
+size_t mpeg_ts_parse_packets_inplace(const uint8_t *buffer, size_t buffer_size,
     MpegTsPacket_t *packets_array, size_t packets_array_size)
 {
     size_t packets_parsed_so_far = 0;
@@ -69,14 +69,14 @@ size_t mpeg_ts_parse_packets_inplace(uint8_t *buffer, size_t buffer_size,
             break;
         }
 
-        next_packet_location_offset += MPEG_TS_PACKET_SIZE;
-
         OptionalMpegTsPacket_t next_packet_ref =
             mpeg_ts_parse_packet_inplace(buffer + next_packet_location_offset,
                 buffer_size - next_packet_location_offset);
         if (!next_packet_ref.has_value) {
             break;
         }
+
+        next_packet_location_offset += MPEG_TS_PACKET_SIZE;
 
         packets_array[packets_parsed_so_far] = next_packet_ref.value;
 

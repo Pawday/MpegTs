@@ -1,9 +1,8 @@
 #include <limits.h>
 #include <memory.h>
 
-
+#include "mpegts/packet_magics.h"
 #include "packet_header.h"
-
 
 OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(const uint8_t *buffer, size_t buffer_size)
 {
@@ -61,15 +60,31 @@ OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(const uint8_t *buffer, 
     ret_val.value.pid |= pid_remainder;
 
     ret_val.value.scrambling_control = 0;
-    ret_val.value.adaptation_field_control = 0;
 
     ret_val.value.scrambling_control |=
         (buffer[3] & MPEG_TS_HEADER_FLAGS_SCRAMBLING_CONTROL_MASK) >>
         (CHAR_BIT - MPEG_TS_SCRAMBLING_CONTROL_SIZE_BITS);
 
-    ret_val.value.adaptation_field_control |=
+    uint8_t adaptation_field_control_num =
         (buffer[3] & MPEG_TS_HEADER_FLAGS_ADAPT_FIELD_CONTROL_MASK) >>
-        (CHAR_BIT - MPEG_TS_SCRAMBLING_CONTROL_SIZE_BITS - MPEG_TS_ADAPT_FIELD_CONTROL_SIZE_BITS);
+        (8 - MPEG_TS_SCRAMBLING_CONTROL_SIZE_BITS - MPEG_TS_ADAPT_FIELD_CONTROL_SIZE_BITS);
+
+    switch (adaptation_field_control_num) {
+    case 0x0:
+        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_RESERVED;
+        break;
+    case 0x1:
+        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_PAYLOAD_ONLY;
+        break;
+    case 0x2:
+        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_ONLY;
+        break;
+    case 0x3:
+        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_AND_PAYLOAD;
+        break;
+    default:
+        return bad_value;
+    }
 
     ret_val.value.continuity_counter = buffer[3] & 0xf;
 
