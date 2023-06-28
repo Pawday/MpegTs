@@ -1,25 +1,31 @@
-# MPEG Transport Stream Program map table dumper
+# Highly portable MPEG Transport Stream library
+
+## Main features:
+* No memory allocations: library can perform operation entaerly on stack
+* Modularity: some components of the library can be easily excluded
+
+## Components
+1. Core:
+ * Structures:
+   - [x] MpegTsPacket
+   - [ ] MpegTsAdaptationField
+   - [ ] MpegTsDescriptor
+      - [x] MpegTsLanguageDescriptor
+ * Builders:
+   - [ ] MpegTsPATBuilder  (Program association table builder) 
+   - [x] MpegTsPMTBuilder  (Program map table builder) 
+   - [ ] MpegTsCATBuilder  (Conditional access table builder) 
+   - [ ] MpegTsNUTBuilder  (Network information table builder) 
+   - [ ] MpegTsTSDTBuilder (Transport stream description table) 
+   - [ ] MpegTsPMTBuilder  (Program map table builder) 
+2. Output:
+   - [ ] JSON5
+      - [ ] MpegTsDescriptorDumper
+         - [x] MpegTsLanguageDescriptor
+      - [x] MpegTsPMTDumper
 
 
 ## Build steps
-
-
-1. Configure with host's C compiler and CMake
-```sh
-sh ./scripts/cmake/gen_hostcc_release.sh
-```
-
-Optional cppcheck the project
-```sh
-cppcheck --enable=all --project=compile_commands.json
-```
-
-2. Build
-```sh
-cmake --build ./BUILD/RELEASE/HOSTCC
-```
-
+TODO
 ## Usage
-```sh
-./BUILD/RELEASE/HOSTCC/tools/PMTDumper
-```
+TODO
