@@ -7,7 +7,7 @@
 #include "descriptors/language_descriptor_dumper.h"
 #include "mpegts/descriptors/language_descriptor.h"
 
-static bool try_dump_descriptor_parsed(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
+static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
     switch (descriptor_to_dump->tag) {
     case ISO_639_LANGUAGE_DESCRIPTOR: {
@@ -29,24 +29,25 @@ static bool try_dump_descriptor_parsed(MpegTsDescriptor_t *descriptor_to_dump, F
 void mpeg_ts_dump_descriptor_json_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
     fprintf(stream, "{");
-    fprintf(stream, "\"desctiptor_tag\":%" PRIu8 ",", descriptor_to_dump->tag_num);
+    fprintf(stream, "\"desctiptor_tag\":0x%" PRIx8 ",", descriptor_to_dump->tag_num);
     fprintf(stream,
         "\"desctiptor_tag_string\":\"%s\",",
         mpeg_ts_descriptor_tag_to_string(descriptor_to_dump->tag));
 
-    if (descriptor_to_dump->length == 0) {
-        return;
-    }
-
     fprintf(stream, "\"descriptor_data\":");
 
-    if (try_dump_descriptor_parsed(descriptor_to_dump, stream)) {
+    if (descriptor_to_dump->length == 0) {
+        fprintf(stream, "\"[]\"");
+        goto end_dumping;
+    }
+
+    if (try_dump_descriptor_data_as_object(descriptor_to_dump, stream)) {
         goto end_dumping;
     }
 
     fprintf(stream, "[");
     for (size_t byte_index = 0; byte_index < descriptor_to_dump->length; byte_index++) {
-        fprintf(stream, "\"0x%" PRIx8 "\"", descriptor_to_dump->data[byte_index]);
+        fprintf(stream, "0x%" PRIx8 "", descriptor_to_dump->data[byte_index]);
 
         if (byte_index + 1 != descriptor_to_dump->length) {
             fputc(',', stream);

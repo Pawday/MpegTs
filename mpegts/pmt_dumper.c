@@ -9,13 +9,13 @@
 void mpeg_ts_dump_pmt_to_stream(MpegTsPMT_t *pmt_to_dump, FILE *stream)
 {
     fprintf(stream, "{");
-    fprintf(stream, "\"program_number\":\"0x%" PRIx16 "\",", pmt_to_dump->program_number);
-    fprintf(stream, "\"version_number\":\"0x%" PRIx8 "\",", pmt_to_dump->version_number);
+    fprintf(stream, "\"program_number\":0x%" PRIx16 ",", pmt_to_dump->program_number);
+    fprintf(stream, "\"version_number\":0x%" PRIx8 ",", pmt_to_dump->version_number);
 
     fprintf(stream, "\"current_next_indicator\":");
     pmt_to_dump->current_next_indicator ? fprintf(stream, "true") : fprintf(stream, "false");
     fprintf(stream, ",");
-    fprintf(stream, "\"PCR_PID\":\"0x%" PRIx16 "\",", pmt_to_dump->PCR_PID);
+    fprintf(stream, "\"PCR_PID\":0x%" PRIx16 ",", pmt_to_dump->PCR_PID);
 
     fprintf(stream, "\"program_info_descriptors\":");
     size_t info_descriptors_amount =
@@ -46,7 +46,7 @@ void mpeg_ts_dump_pmt_to_stream(MpegTsPMT_t *pmt_to_dump, FILE *stream)
     }
     fprintf(stream, "],");
 
-    fprintf(stream, "\"crc\":\"0x%" PRIx32 "\"", pmt_to_dump->CRC);
+    fprintf(stream, "\"crc\":0x%" PRIx32, pmt_to_dump->CRC);
 
     fprintf(stream, "}");
 }
