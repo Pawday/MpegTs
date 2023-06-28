@@ -26,6 +26,7 @@ target_sources(MpegTS PRIVATE
 	stream_type.c
 	)
 
+include(descriptors/descriptor_types.cmake)
 
 target_include_directories(MpegTS PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../")
 

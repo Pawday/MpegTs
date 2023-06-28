@@ -10,7 +10,9 @@ OptionalMpegTsDescriptor_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *bu
         return bad_value;
     }
 
-    MpegTsDescriptorTag_e parsed_tag = mpeg_ts_num_to_descriptor_tag(buffer[0]);
+    const uint8_t descriptor_tag_num = buffer[0];
+
+    MpegTsDescriptorTag_e parsed_tag = mpeg_ts_num_to_descriptor_tag(descriptor_tag_num);
     if (parsed_tag == MPEG_DESCRIPTOR_FORBIDDEN) {
         return bad_value;
     }
@@ -23,6 +25,7 @@ OptionalMpegTsDescriptor_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *bu
     OptionalMpegTsDescriptor_t ret_val;
     ret_val.has_value = true;
     ret_val.value.length = descriptor_data_size;
+    ret_val.value.tag_num = descriptor_tag_num;
     ret_val.value.tag = parsed_tag;
     ret_val.value.data = buffer + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
     return ret_val;

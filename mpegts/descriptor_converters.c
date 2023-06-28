@@ -101,7 +101,7 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
     case 0x33:
         return MVC_OPERATION_POINT_DESCRIPTOR;
     case 0x34:
-        return MPEG2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR;
+        return MPEG_2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR;
     case 0x35:
         return STEREOSCOPIC_PROGRAM_INFO_DESCRIPTOR;
     case 0x36:
@@ -130,109 +130,109 @@ const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_ta
     switch (descriptor_tag) {
 
     case MPEG_DESCRIPTOR_FORBIDDEN:
-        return "FORBIDDEN";
+        return "Forbidden";
     case VIDEO_STREAM_DESCRIPTOR:
-        return "VIDEO_STREAM_DESCRIPTOR";
+        return "Video Stream Descriptor";
     case AUDIO_STREAM_DESCRIPTOR:
-        return "AUDIO_STREAM_DESCRIPTOR";
+        return "Audio Stream Descriptor";
     case HIERARCHY_DESCRIPTOR:
-        return "HIERARCHY_DESCRIPTOR";
+        return "Hierarchy Descriptor";
     case REGISTRATION_DESCRIPTOR:
-        return "REGISTRATION_DESCRIPTOR";
+        return "Registration Descriptor";
     case DATA_STREAM_ALIGNMENT_DESCRIPTOR:
-        return "DATA_STREAM_ALIGNMENT_DESCRIPTOR";
+        return "Data Stream Alignment Descriptor";
     case TARGET_BACKGROUND_GRID_DESCRIPTOR:
-        return "TARGET_BACKGROUND_GRID_DESCRIPTOR";
+        return "Target Background Grid Descriptor";
     case VIDEO_WINDOW_DESCRIPTOR:
-        return "VIDEO_WINDOW_DESCRIPTOR";
+        return "Video Window Descriptor";
     case CA_DESCRIPTOR:
-        return "CA_DESCRIPTOR";
+        return "CA Descriptor";
     case ISO_639_LANGUAGE_DESCRIPTOR:
-        return "ISO_639_LANGUAGE_DESCRIPTOR";
+        return "Language Descriptor";
     case SYSTEM_CLOCK_DESCRIPTOR:
-        return "SYSTEM_CLOCK_DESCRIPTOR";
+        return "System Clock Descriptor";
     case MULTIPLEX_BUFFER_UTILIZATION_DESCRIPTOR:
-        return "MULTIPLEX_BUFFER_UTILIZATION_DESCRIPTOR";
+        return "Multiplex Buffer Utilization Descriptor";
     case COPYRIGHT_DESCRIPTOR:
-        return "COPYRIGHT_DESCRIPTOR";
+        return "Copyright Descriptor";
     case MAXIMUM_BITRATE_DESCRIPTOR:
-        return "MAXIMUM_BITRATE_DESCRIPTOR";
+        return "Maximum Bitrate Descriptor";
     case PRIVATE_DATA_INDICATOR_DESCRIPTOR:
-        return "PRIVATE_DATA_INDICATOR_DESCRIPTOR";
+        return "Private Data Indicator Descriptor";
     case SMOOTHING_BUFFER_DESCRIPTOR:
-        return "SMOOTHING_BUFFER_DESCRIPTOR";
+        return "Smoothing Buffer Descriptor";
     case STD_DESCRIPTOR:
-        return "STD_DESCRIPTOR";
+        return "STD Descriptor";
     case IBP_DESCRIPTOR:
-        return "IBP_DESCRIPTOR";
+        return "IBP Descriptor";
     case ISO_IEC_13818_6:
-        return "ISO_IEC_13818_6";
+        return "ISO IEC 13818-6 Descriptor";
     case MPEG_4_VIDEO_DESCRIPTOR:
-        return "MPEG_4_VIDEO_DESCRIPTOR";
+        return "MPEG-4 Video Descriptor";
     case MPEG_4_AUDIO_DESCRIPTOR:
-        return "MPEG_4_AUDIO_DESCRIPTOR";
+        return "MPEG-4 Audio Descriptor";
     case IOD_DESCRIPTOR:
-        return "IOD_DESCRIPTOR";
+        return "IOD Descriptor";
     case SL_DESCRIPTOR:
-        return "SL_DESCRIPTOR";
+        return "SL Descriptor";
     case FMC_DESCRIPTOR:
-        return "FMC_DESCRIPTOR";
+        return "FMC Descriptor";
     case EXTERNAL_ES_ID_DESCRIPTOR:
-        return "EXTERNAL_ES_ID_DESCRIPTOR";
+        return "External ES ID Descriptor";
     case MUXCODE_DESCRIPTOR:
-        return "MUXCODE_DESCRIPTOR";
+        return "Muxcode Descriptor";
     case FMX_BUFFER_SIZE_DESCRIPTOR:
-        return "FMX_BUFFER_SIZE_DESCRIPTOR";
+        return "FMX Buffer Size Descriptor";
     case MULTIPLEXBUFFER_DESCRIPTOR:
-        return "MULTIPLEXBUFFER_DESCRIPTOR";
+        return "Multiplexbuffer Descriptor";
     case CONTENT_LABELING_DESCRIPTOR:
-        return "CONTENT_LABELING_DESCRIPTOR";
+        return "Content Labeling Descriptor";
     case METADATA_POINTER_DESCRIPTOR:
-        return "METADATA_POINTER_DESCRIPTOR";
+        return "Metadata Pointer Descriptor";
     case METADATA_DESCRIPTOR:
-        return "METADATA_DESCRIPTOR";
+        return "Metadata Descriptor";
     case METADATA_STD_DESCRIPTOR:
-        return "METADATA_STD_DESCRIPTOR";
+        return "Metadata STD Descriptor";
     case AVC_VIDEO_DESCRIPTOR:
-        return "AVC_VIDEO_DESCRIPTOR";
+        return "AVC Video Descriptor";
     case IPMP_DESCRIPTOR:
-        return "IPMP_DESCRIPTOR";
+        return "IPMP Descriptor";
     case AVC_TIMING_AND_HRD_DESCRIPTOR:
-        return "AVC_TIMING_AND_HRD_DESCRIPTOR";
+        return "AVC Timing And HRD Descriptor";
     case MPEG_2_AAC_AUDIO_DESCRIPTOR:
-        return "MPEG_2_AAC_AUDIO_DESCRIPTOR";
+        return "MPEG-2 AAC Audio Descriptor";
     case FLEXMUXTIMING_DESCRIPTOR:
-        return "FLEXMUXTIMING_DESCRIPTOR";
+        return "Flexmuxtiming Descriptor";
     case MPEG_4_TEXT_DESCRIPTOR:
-        return "MPEG_4_TEXT_DESCRIPTOR";
+        return "MPEG-4 Text Descriptor";
     case MPEG_4_AUDIO_EXTENSION_DESCRIPTOR:
-        return "MPEG_4_AUDIO_EXTENSION_DESCRIPTOR";
+        return "MPEG-4 Audio Extension Descriptor";
     case AUXILIARY_VIDEO_STREAM_DESCRIPTOR:
-        return "AUXILIARY_VIDEO_STREAM_DESCRIPTOR";
+        return "Auxiliary Video Stream Descriptor";
     case SVC_EXTENSION_DESCRIPTOR:
-        return "SVC_EXTENSION_DESCRIPTOR";
+        return "SVC Extension Descriptor";
     case MVC_EXTENSION_DESCRIPTOR:
-        return "MVC_EXTENSION_DESCRIPTOR";
+        return "MVC Extension Descriptor";
     case J2K_VIDEO_DESCRIPTOR:
-        return "J2K_VIDEO_DESCRIPTOR";
+        return "J2K Video Descriptor";
     case MVC_OPERATION_POINT_DESCRIPTOR:
-        return "MVC_OPERATION_POINT_DESCRIPTOR";
-    case MPEG2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR:
-        return "MPEG2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR";
+        return "MVC Operation Point Descriptor";
+    case MPEG_2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR:
+        return "MPEG-2 Stereoscopic Video Format Descriptor";
     case STEREOSCOPIC_PROGRAM_INFO_DESCRIPTOR:
-        return "STEREOSCOPIC_PROGRAM_INFO_DESCRIPTOR";
+        return "Stereoscopic Program Info Descriptor";
     case STEREOSCOPIC_VIDEO_INFO_DESCRIPTOR:
-        return "STEREOSCOPIC_VIDEO_INFO_DESCRIPTOR";
+        return "Stereoscopic Video Info Descriptor";
     case TRANSPORT_PROFILE_DESCRIPTOR:
-        return "TRANSPORT_PROFILE_DESCRIPTOR";
+        return "Transport Profile Descriptor";
     case HEVC_VIDEO_DESCRIPTOR:
-        return "HEVC_VIDEO_DESCRIPTOR";
+        return "HEVC Video Descriptor";
     case EXTENSION_DESCRIPTOR:
-        return "EXTENSION_DESCRIPTOR";
+        return "Extension Descriptor";
     case MPEG_DESCRIPTOR_USER_PRIVATE:
-        return "USER_PRIVATE_DESCRIPTOR";
+        return "User Private Descriptor";
     case MPEG_DESCRIPTOR_RESERVED:
-        return "RESERVED_DESCRIPTOR";
+        return "Reserved";
     }
 
     return "UNKNOWN_DESCRIPTOR";

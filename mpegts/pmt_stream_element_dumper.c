@@ -22,7 +22,7 @@ void mpeg_ts_dump_stream_element_to_stream(MpegTsElementStream_t *element, FILE 
     fprintf(output_stream, "[");
 
     if (stream_element_descriptors_amount != 0) {
-        mpeg_ts_dump_descriptors_to_stream(element->es_info_descriptors_data,
+        mpeg_ts_dump_descriptors_json_to_stream(element->es_info_descriptors_data,
             element->es_info_length,
             stream_element_descriptors_amount,
             output_stream);

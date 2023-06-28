@@ -1,18 +1,47 @@
-#include "descriptor_parser.h"
-#include "descriptor_dumper.h"
+#include <assert.h>
 
-void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
+#include "descriptor_dumper.h"
+#include "descriptor_parser.h"
+
+#include "descriptors/language_descriptor_convertors.h"
+#include "descriptors/language_descriptor_dumper.h"
+#include "mpegts/descriptors/language_descriptor.h"
+
+static bool try_dump_descriptor_parsed(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
+{
+    switch (descriptor_to_dump->tag) {
+    case ISO_639_LANGUAGE_DESCRIPTOR: {
+        OptionalMpegTsLanguageDescriptor_t opt_lang_desc =
+            mpeg_ts_language_descriptor_from_raw_descriptor(descriptor_to_dump);
+
+        assert(opt_lang_desc.has_value);
+
+        if (opt_lang_desc.has_value) {
+            mpeg_ts_dump_language_descriptor_content_json_to_stream(&opt_lang_desc.value, stream);
+            return true;
+        }
+    }
+    default:
+        return false;
+    };
+}
+
+void mpeg_ts_dump_descriptor_json_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
     fprintf(stream, "{");
+    fprintf(stream, "\"desctiptor_tag\":%" PRIu8 ",", descriptor_to_dump->tag_num);
     fprintf(stream,
-        "\"desctiptor_tag\":\"%s\",",
+        "\"desctiptor_tag_string\":\"%s\",",
         mpeg_ts_descriptor_tag_to_string(descriptor_to_dump->tag));
+
+    if (descriptor_to_dump->length == 0) {
+        return;
+    }
 
     fprintf(stream, "\"descriptor_data\":");
 
-    if (descriptor_to_dump->length == 0) {
-        fprintf(stream, "[]}");
-        return;
+    if (try_dump_descriptor_parsed(descriptor_to_dump, stream)) {
+        goto end_dumping;
     }
 
     fprintf(stream, "[");
@@ -23,11 +52,13 @@ void mpeg_ts_dump_descriptor_to_stream(MpegTsDescriptor_t *descriptor_to_dump, F
             fputc(',', stream);
         }
     }
+    fprintf(stream, "]");
 
-    fprintf(stream, "]}");
+end_dumping:
+    fprintf(stream, "}");
 }
 
-void mpeg_ts_dump_descriptors_to_stream(uint8_t *first_descriptor_location, size_t data_length,
+void mpeg_ts_dump_descriptors_json_to_stream(uint8_t *first_descriptor_location, size_t data_length,
     size_t descriptors_amount, FILE *stream)
 {
     size_t current_descriptor_data_offset = 0;
@@ -42,7 +73,7 @@ void mpeg_ts_dump_descriptors_to_stream(uint8_t *first_descriptor_location, size
             break;
         }
 
-        mpeg_ts_dump_descriptor_to_stream(&descriptor.value, stream);
+        mpeg_ts_dump_descriptor_json_to_stream(&descriptor.value, stream);
 
         if (descriptor_index + 1 != descriptors_amount) {
             fputc(',', stream);

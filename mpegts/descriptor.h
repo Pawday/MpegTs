@@ -52,7 +52,7 @@ typedef enum
     MVC_EXTENSION_DESCRIPTOR,                   // 0x31
     J2K_VIDEO_DESCRIPTOR,                       // 0x32
     MVC_OPERATION_POINT_DESCRIPTOR,             // 0x33
-    MPEG2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR, // 0x34
+    MPEG_2_STEREOSCOPIC_VIDEO_FORMAT_DESCRIPTOR, // 0x34
     STEREOSCOPIC_PROGRAM_INFO_DESCRIPTOR,       // 0x35
     STEREOSCOPIC_VIDEO_INFO_DESCRIPTOR,         // 0x36
     TRANSPORT_PROFILE_DESCRIPTOR,               // 0x37
@@ -67,9 +67,9 @@ typedef enum
 typedef struct
 {
     MpegTsDescriptorTag_e tag;
+    uint8_t tag_num;
     uint8_t length;
     const uint8_t *data;
-
 } MpegTsDescriptor_t;
 
 typedef struct

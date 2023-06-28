@@ -24,7 +24,7 @@ void mpeg_ts_dump_pmt_to_stream(MpegTsPMT_t *pmt_to_dump, FILE *stream)
 
     fprintf(stream, "[");
     if (info_descriptors_amount != 0) {
-        mpeg_ts_dump_descriptors_to_stream(pmt_to_dump->program_info_data,
+        mpeg_ts_dump_descriptors_json_to_stream(pmt_to_dump->program_info_data,
             pmt_to_dump->program_info_length,
             info_descriptors_amount,
             stream);
