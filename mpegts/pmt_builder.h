@@ -46,5 +46,8 @@ void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder);
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMTBuilder_t *builder,
     MpegTsPacket_t *packet);
 
-OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder);
+/**
+ * all pointers in "output_table" will lead to memory inside the "builder" struct
+ */
+bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_t *output_table);
 

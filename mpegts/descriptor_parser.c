@@ -1,34 +1,29 @@
 #include "descriptor.h"
 
-OptionalMpegTsDescriptor_t mpeg_ts_psi_parse_descriptor_linked(const uint8_t *buffer,
-    size_t buffer_size)
+bool mpeg_ts_psi_parse_descriptor_linked(MpegTsDescriptor_t *output_descriptor,
+    const uint8_t *buffer, size_t buffer_size)
 {
-    const OptionalMpegTsDescriptor_t bad_value = {.has_value = false,
-        .value = {.length = 0, .data = NULL, .tag = MPEG_DESCRIPTOR_FORBIDDEN}};
-
     if (buffer_size < MPEG_TS_DESCRIPTOR_HEADER_SIZE) {
-        return bad_value;
+        return false;
     }
 
     const uint8_t descriptor_tag_num = buffer[0];
 
     MpegTsDescriptorTag_e parsed_tag = mpeg_ts_num_to_descriptor_tag(descriptor_tag_num);
     if (parsed_tag == MPEG_DESCRIPTOR_FORBIDDEN) {
-        return bad_value;
+        return false;
     }
 
     uint8_t descriptor_data_size = buffer[1];
     if (buffer_size < descriptor_data_size + MPEG_TS_DESCRIPTOR_HEADER_SIZE) {
-        return bad_value;
+        return false;
     }
 
-    OptionalMpegTsDescriptor_t ret_val;
-    ret_val.has_value = true;
-    ret_val.value.length = descriptor_data_size;
-    ret_val.value.tag_num = descriptor_tag_num;
-    ret_val.value.tag = parsed_tag;
-    ret_val.value.data = buffer + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
-    return ret_val;
+    output_descriptor->length = descriptor_data_size;
+    output_descriptor->tag = parsed_tag;
+    output_descriptor->tag_num = descriptor_tag_num;
+    output_descriptor->data = buffer + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
+    return true;
 }
 
 size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buffer_size)
@@ -39,18 +34,17 @@ size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buf
     bool last_descriptor_has_value = true;
 
     while (last_descriptor_has_value && offset_in_buffer_to_next_descriptor < buffer_size) {
-        OptionalMpegTsDescriptor_t next_descriptor =
-            mpeg_ts_psi_parse_descriptor_linked(buffer + offset_in_buffer_to_next_descriptor,
-                buffer_size - offset_in_buffer_to_next_descriptor);
 
-        if (!next_descriptor.has_value) {
-            last_descriptor_has_value = false;
-            continue;
+        MpegTsDescriptor_t next_descriptor;
+        if (!mpeg_ts_psi_parse_descriptor_linked(&next_descriptor,
+                buffer + offset_in_buffer_to_next_descriptor,
+                buffer_size - offset_in_buffer_to_next_descriptor)) {
+            break;
         }
 
         descriptors_amount_so_far++;
         offset_in_buffer_to_next_descriptor +=
-            next_descriptor.value.length + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
+            next_descriptor.length + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
     }
 
     return descriptors_amount_so_far;

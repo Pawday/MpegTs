@@ -243,13 +243,10 @@ MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMT
     return send_continuation_packet(builder, packet);
 }
 
-OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder)
+bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_t *output_table)
 {
-
-    const OptionalMpegTsPMT_t bad_value = {.has_value = false, .value = {0}};
-
     if (builder->state != PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
-        return bad_value;
+        return false;
     }
 
     /*
@@ -282,11 +279,11 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
         flags_and_length & MPEG_TS_PSI_PMT_SECTION_SYNTAX_INDICATOR_BIT;
 
     if (syntax_indicator_byte_masked == 0) {
-        return bad_value;
+        return false;
     }
 
     if ((flags_and_length & MPEG_TS_PSI_PMT_SHOULD_BE_ZERO_BIT) != 0) {
-        return bad_value;
+        return false;
     }
 
     uint16_t section_length = 0;
@@ -299,28 +296,20 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      */
     uint8_t length_part_from_byte1 = flags_and_length & 0x0f;
     uint8_t length_part_from_byte2 = table_data[2];
-
     section_length |= (length_part_from_byte1 << 8) | length_part_from_byte2;
-
     if (section_length >= MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH) {
-        return bad_value;
+        return false;
     }
-
-    OptionalMpegTsPMT_t valid_table;
-    valid_table.has_value = true;
-
-    MpegTsPMT_t *value_ref = &valid_table.value;
-
-    value_ref->section_length = section_length;
+    output_table->section_length = section_length;
 
     /*
      * table_data:
      *    |byte3 | |byte4 |
      *  0b01000010_00110010 <-- all 16 bits is program number
      */
-    value_ref->program_number = 0;
-    value_ref->program_number |= table_data[3] << 8;
-    value_ref->program_number |= table_data[4];
+    output_table->program_number = 0;
+    output_table->program_number |= table_data[3] << 8;
+    output_table->program_number |= table_data[4];
 
     /*
      * table_data:
@@ -338,14 +327,14 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *
      */
 
-    value_ref->version_number = 0;
+    output_table->version_number = 0;
     /*
      * table_data:
      *    | byte5  |
      *  0b00_00101_0
      *       ^^^^^ --select this and shift to 1 byte rigth
      */
-    value_ref->version_number = (table_data[5] & MPEG_TS_PSI_PMT_VERSION_NUMBER_MASK) >> 1;
+    output_table->version_number = (table_data[5] & MPEG_TS_PSI_PMT_VERSION_NUMBER_MASK) >> 1;
 
     /*
      * table_data:
@@ -356,12 +345,11 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *             +--- current_next_indicator is set?
      */
 
-    value_ref->current_next_indicator =
+    output_table->current_next_indicator =
         (table_data[5] & MPEG_TS_PSI_PMT_CURRENT_NEXT_INDICATOR_BIT) ==
         MPEG_TS_PSI_PMT_CURRENT_NEXT_INDICATOR_BIT;
-
-    if (!value_ref->current_next_indicator) {
-        return bad_value;
+    if (!output_table->current_next_indicator) {
+        return false;
     }
 
     /*
@@ -371,7 +359,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      */
 
     if (table_data[6] != 0) {
-        return bad_value;
+        return false;
     }
 
     /*
@@ -380,7 +368,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *  0b00000000 - last_section_number ("shall be set to zero")
      */
     if (table_data[7] != 0) {
-        return bad_value;
+        return false;
     }
 
     /*
@@ -395,7 +383,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *     +--------- reserved
      */
 
-    value_ref->PCR_PID = 0;
+    output_table->PCR_PID = 0;
 
     /*
      * table_data:
@@ -404,7 +392,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *        ^^^^^ -select this than shift it left by 8 bits than merge to PCR_PID MSB
      */
 
-    value_ref->PCR_PID |= (table_data[8] & MPEG_TS_PSI_PMT_PCR_PID_MSB_MASK) << 8;
+    output_table->PCR_PID |= (table_data[8] & MPEG_TS_PSI_PMT_PCR_PID_MSB_MASK) << 8;
 
     /*
      * table_data:
@@ -412,7 +400,7 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *  0b000_0000000000000
      *             ^^^^^^^^ - merge it to PCR_PID LSB
      */
-    value_ref->PCR_PID |= table_data[9];
+    output_table->PCR_PID |= table_data[9];
 
     /*
      * table_data:
@@ -424,29 +412,29 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
      *     |
      *     +---- reserved
      */
-    value_ref->program_info_length = 0;
+    output_table->program_info_length = 0;
 
-    value_ref->program_info_length |=
+    output_table->program_info_length |=
         (table_data[10] & MPEG_TS_PSI_PMT_PROGRAM_INFO_LENGTH_MSB_MASK) << 8;
 
-    value_ref->program_info_length |= table_data[11];
+    output_table->program_info_length |= table_data[11];
 
-    value_ref->program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
+    output_table->program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
 
     uint8_t *elements_stream_data =
-        table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + value_ref->program_info_length;
+        table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + output_table->program_info_length;
 
-    value_ref->program_elements = elements_stream_data;
+    output_table->program_elements = elements_stream_data;
 
-    assert(
-        value_ref->section_length > (MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET +
-                                        value_ref->program_info_length + sizeof(value_ref->CRC)));
+    assert(output_table->section_length >
+           (MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + output_table->program_info_length +
+               sizeof(output_table->CRC)));
 
-    uint16_t elements_stream_data_size = value_ref->section_length -
-                                         MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET -
-                                         value_ref->program_info_length - sizeof(value_ref->CRC);
+    uint16_t elements_stream_data_size =
+        output_table->section_length - MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET -
+        output_table->program_info_length - sizeof(output_table->CRC);
 
-    value_ref->program_elements_length = elements_stream_data_size;
+    output_table->program_elements_length = elements_stream_data_size;
 
     uint16_t full_section_length = section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET;
 
@@ -456,12 +444,12 @@ OptionalMpegTsPMT_t mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *buil
     uint8_t CRC_byte_2 = table_data[full_section_length - 2];
     uint8_t CRC_byte_3 = table_data[full_section_length - 1];
 
-    value_ref->CRC = 0;
-    value_ref->CRC |= CRC_byte_0 << (8 * 3);
-    value_ref->CRC |= CRC_byte_1 << (8 * 2);
-    value_ref->CRC |= CRC_byte_2 << (8 * 1);
-    value_ref->CRC |= CRC_byte_3 << (8 * 0);
+    output_table->CRC = 0;
+    output_table->CRC |= CRC_byte_0 << (8 * 3);
+    output_table->CRC |= CRC_byte_1 << (8 * 2);
+    output_table->CRC |= CRC_byte_2 << (8 * 1);
+    output_table->CRC |= CRC_byte_3 << (8 * 0);
 
-    return valid_table;
+    return true;
 }
 

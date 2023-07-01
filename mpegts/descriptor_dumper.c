@@ -1,5 +1,6 @@
 #include <assert.h>
 
+
 #include "descriptor_dumper.h"
 #include "descriptor_parser.h"
 
@@ -66,21 +67,22 @@ void mpeg_ts_dump_descriptors_json_to_stream(uint8_t *first_descriptor_location,
 
     for (size_t descriptor_index = 0; descriptor_index < descriptors_amount; descriptor_index++) {
 
-        OptionalMpegTsDescriptor_t descriptor = mpeg_ts_psi_parse_descriptor_linked(
-            first_descriptor_location + current_descriptor_data_offset,
-            data_length - current_descriptor_data_offset);
-
-        if (!descriptor.has_value) {
+        MpegTsDescriptor_t descriptor_to_dump = {0};
+        if (!mpeg_ts_psi_parse_descriptor_linked(&descriptor_to_dump,
+                first_descriptor_location + current_descriptor_data_offset,
+                data_length - current_descriptor_data_offset)) {
             break;
         }
 
-        mpeg_ts_dump_descriptor_json_to_stream(&descriptor.value, stream);
+        mpeg_ts_dump_descriptor_json_to_stream(&descriptor_to_dump, stream);
+
 
         if (descriptor_index + 1 != descriptors_amount) {
             fputc(',', stream);
         }
 
-        current_descriptor_data_offset += descriptor.value.length + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
+        current_descriptor_data_offset +=
+            descriptor_to_dump.length + MPEG_TS_DESCRIPTOR_HEADER_SIZE;
     }
 }
 

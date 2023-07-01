@@ -38,22 +38,21 @@ void mpeg_ts_dump_stream_elements_to_stream(uint8_t *program_stream_elements_sta
 
     for (size_t element_index = 0; element_index < elements_amount; element_index++) {
 
-        OptionalMpegTsElementStream_t element = mpeg_ts_parse_pmt_stream_element_linked(
-            program_stream_elements_start + current_element_data_offset,
-            program_elements_data_size - current_element_data_offset);
-
-        if (!element.has_value) {
+        MpegTsElementStream_t element;
+        if (!mpeg_ts_parse_pmt_stream_element_linked(&element,
+                program_stream_elements_start + current_element_data_offset,
+                program_elements_data_size - current_element_data_offset)) {
             break;
         }
 
-        mpeg_ts_dump_stream_element_to_stream(&element.value, output_stream);
+        mpeg_ts_dump_stream_element_to_stream(&element, output_stream);
 
         if (element_index + 1 != elements_amount) {
             fputc(',', output_stream);
         }
 
         current_element_data_offset +=
-            element.value.es_info_length + MPEG_TS_PSI_PMT_STREAM_ELEMENT_DESCRIPTORS_OFFSET;
+            element.es_info_length + MPEG_TS_PSI_PMT_STREAM_ELEMENT_DESCRIPTORS_OFFSET;
     }
 }
 

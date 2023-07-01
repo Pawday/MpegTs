@@ -2,7 +2,6 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stddef.h>
 
 #include "psi_magics.h"
 
@@ -34,10 +33,4 @@ typedef struct
     uint32_t CRC;
 
 } MpegTsPMT_t;
-
-typedef struct
-{
-    bool has_value;
-    MpegTsPMT_t value;
-} OptionalMpegTsPMT_t;
 

@@ -72,12 +72,6 @@ typedef struct
     const uint8_t *data;
 } MpegTsDescriptor_t;
 
-typedef struct
-{
-    bool has_value;
-    MpegTsDescriptor_t value;
-} OptionalMpegTsDescriptor_t;
-
 MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_int);
 const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_tag);
 

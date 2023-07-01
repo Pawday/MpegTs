@@ -11,9 +11,3 @@ typedef struct
     const uint8_t *payload;
 } MpegTsPacket_t;
 
-typedef struct
-{
-    MpegTsPacket_t value;
-    bool has_value;
-} OptionalMpegTsPacket_t;
-

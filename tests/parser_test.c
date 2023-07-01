@@ -9,12 +9,13 @@
 static void parse_single_packet_test(void)
 {
     IOVec data_block = test_data_get_raw_packet();
-    OptionalMpegTsPacket_t optional_packet =
-        mpeg_ts_parse_packet_inplace(data_block.data, data_block.size);
 
-    assert(optional_packet.has_value);
+    MpegTsPacket_t packet;
 
-    MpegTsPacket_t packet = optional_packet.value;
+    bool packet_parse_status =
+        mpeg_ts_parse_packet_inplace(&packet, data_block.data, data_block.size);
+
+    assert(packet_parse_status);
 
     assert(packet.header.error_indicator == false);
     assert(packet.header.payload_unit_start_indicator == false);

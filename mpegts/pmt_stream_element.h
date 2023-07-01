@@ -32,15 +32,9 @@ typedef struct
 
 } MpegTsElementStream_t;
 
-typedef struct
-{
-    bool has_value;
-    MpegTsElementStream_t value;
 
-} OptionalMpegTsElementStream_t;
-
-OptionalMpegTsElementStream_t mpeg_ts_parse_pmt_stream_element_linked(uint8_t *element_stream_data,
-    size_t data_size);
+bool mpeg_ts_parse_pmt_stream_element_linked(MpegTsElementStream_t *output_element,
+    uint8_t *element_stream_data, size_t data_size);
 
 /*
  * return amount of MpegTsElementStream_t in "element_stream_data"

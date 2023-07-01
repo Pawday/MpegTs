@@ -4,16 +4,15 @@
 #include "mpegts/packet_magics.h"
 #include "packet_header.h"
 
-OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(const uint8_t *buffer, size_t buffer_size)
+bool mpeg_ts_parse_packet_header(MpegTsPacketHeader_t *output_header, const uint8_t *buffer,
+    size_t buffer_size)
 {
-    const OptionalMpegTsPacketHeader_t bad_value = {.has_balue = false, .value = {0}};
-
     if (buffer_size < MPEG_TS_PACKET_HEADER_SIZE) {
-        return bad_value;
+        return false;
     }
 
     if (buffer[0] != MPEG_TS_SYNC_BYTE) {
-        return bad_value;
+        return false;
     }
 
     // 0b000_11111
@@ -28,40 +27,38 @@ OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(const uint8_t *buffer, 
     //   ^^^ select this
     uint8_t flags_only = flags_and_pid5 & MPEG_TS_HEADER_FLAGS_MASK;
 
-    OptionalMpegTsPacketHeader_t ret_val;
+    output_header->error_indicator = (flags_only & MPEG_TS_HEADER_FLAGS_ERR_BIT) != 0;
 
-    ret_val.value.error_indicator = (flags_only & MPEG_TS_HEADER_FLAGS_ERR_BIT) != 0;
-
-    if (ret_val.value.error_indicator) {
-        return bad_value;
+    if (output_header->error_indicator) {
+        return false;
     }
 
-    ret_val.value.payload_unit_start_indicator =
+    output_header->payload_unit_start_indicator =
         (flags_only & MPEG_TS_HEADER_FLAGS_PAYLOAD_UNIT_START_INDICATOR_BIT) != 0;
 
-    ret_val.value.transport_priority =
+    output_header->transport_priority =
         (flags_only & MPEG_TS_HEADER_FLAGS_TRANSPORT_PRIORITY_BIT) != 0;
 
     // 0b000_11111
     //       ^^^^^ select this
     uint8_t pid5_only = flags_and_pid5 & ~MPEG_TS_HEADER_FLAGS_MASK;
 
-    ret_val.value.pid = 0;
+    output_header->pid = 0;
 
     // ret_val.value.pid:                0b0000000000000
     // pid5_only:                          |  0b00011111
     // pid5_only:                     0b00011111<<<<<<<<
 
     // ret_val.value.pid:                0b1111100000000
-    ret_val.value.pid |= (pid5_only << (MPEG_TS_PID_FIELD_SIZE_BITS - 5));
+    output_header->pid |= (pid5_only << (MPEG_TS_PID_FIELD_SIZE_BITS - 5));
 
     uint8_t pid_remainder = buffer[2];
 
-    ret_val.value.pid |= pid_remainder;
+    output_header->pid |= pid_remainder;
 
-    ret_val.value.scrambling_control = 0;
+    output_header->scrambling_control = 0;
 
-    ret_val.value.scrambling_control |=
+    output_header->scrambling_control |=
         (buffer[3] & MPEG_TS_HEADER_FLAGS_SCRAMBLING_CONTROL_MASK) >>
         (CHAR_BIT - MPEG_TS_SCRAMBLING_CONTROL_SIZE_BITS);
 
@@ -71,24 +68,23 @@ OptionalMpegTsPacketHeader_t mpeg_ts_parse_packet_header(const uint8_t *buffer, 
 
     switch (adaptation_field_control_num) {
     case 0x0:
-        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_RESERVED;
+        output_header->adaptation_field_control = ADAPTATION_FIELD_RESERVED;
         break;
     case 0x1:
-        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_PAYLOAD_ONLY;
+        output_header->adaptation_field_control = ADAPTATION_FIELD_PAYLOAD_ONLY;
         break;
     case 0x2:
-        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_ONLY;
+        output_header->adaptation_field_control = ADAPTATION_FIELD_ONLY;
         break;
     case 0x3:
-        ret_val.value.adaptation_field_control = ADAPTATION_FIELD_AND_PAYLOAD;
+        output_header->adaptation_field_control = ADAPTATION_FIELD_AND_PAYLOAD;
         break;
     default:
-        return bad_value;
+        return false;
     }
 
-    ret_val.value.continuity_counter = buffer[3] & 0xf;
+    output_header->continuity_counter = buffer[3] & 0xf;
 
-    ret_val.has_balue = true;
-    return ret_val;
+    return true;
 }
 
