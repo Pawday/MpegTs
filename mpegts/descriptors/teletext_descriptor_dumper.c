@@ -6,7 +6,7 @@ void mpeg_ts_dump_teletext_descriptor_content_json_to_stream(
 {
     fprintf(stream, "{");
     fprintf(stream, "\"language_code\":\"%.3s\",", descriptor_to_dump->language_code);
-    fprintf(stream, "\"teletext_type\":0x%" PRIx8 ",", descriptor_to_dump->teletext_type);
+    fprintf(stream, "\"teletext_type\":0x%" PRIx8 ",", descriptor_to_dump->teletext_type_num);
     fprintf(stream,
         "\"teletext_type_string\":\"%s\",",
         mpeg_ts_teletext_descriptor_type_to_string(descriptor_to_dump->teletext_type));

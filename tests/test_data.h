@@ -9,3 +9,4 @@ typedef struct
 
 IOVec test_data_get_raw_packet(void);
 IOVec test_data_get_two_packets(void);
+IOVec test_data_get_packet_with_pmt(void);

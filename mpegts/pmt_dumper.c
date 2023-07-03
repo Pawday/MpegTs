@@ -36,6 +36,8 @@ void mpeg_ts_dump_pmt_to_stream(MpegTsPMT_t *pmt_to_dump, FILE *stream)
     size_t element_streams_amount = mpeg_ts_count_stream_elements(pmt_to_dump->program_elements,
         pmt_to_dump->program_elements_length);
 
+    printf("\n\n\nELEMENTS: %"PRIuPTR"\n\n\n", element_streams_amount);
+
     if (element_streams_amount != 0) {
 
         mpeg_ts_dump_stream_elements_to_stream(pmt_to_dump->program_elements,

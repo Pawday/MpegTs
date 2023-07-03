@@ -419,7 +419,10 @@ bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_
 
     output_table->program_info_length |= table_data[11];
 
-    output_table->program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
+    output_table->program_info_data = NULL;
+    if (output_table->program_info_length != 0) {
+        output_table->program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
+    }
 
     uint8_t *elements_stream_data =
         table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + output_table->program_info_length;
@@ -431,8 +434,9 @@ bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_
                sizeof(output_table->CRC)));
 
     uint16_t elements_stream_data_size =
-        output_table->section_length - MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET -
-        output_table->program_info_length - sizeof(output_table->CRC);
+        output_table->section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET -
+        MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET - output_table->program_info_length -
+        sizeof(output_table->CRC);
 
     output_table->program_elements_length = elements_stream_data_size;
 
