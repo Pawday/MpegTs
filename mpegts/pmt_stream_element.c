@@ -78,7 +78,6 @@ bool mpeg_ts_parse_pmt_stream_element_linked(MpegTsElementStream_t *output_eleme
      */
 
     output_element->es_info_length = 0;
-
     /*
      * element_stream_data:
      *   |byte3  |
@@ -87,13 +86,10 @@ bool mpeg_ts_parse_pmt_stream_element_linked(MpegTsElementStream_t *output_eleme
      */
     uint8_t es_info_length_first_part =
         element_stream_data[3] & MPEG_TS_PSI_PMT_STREAM_ELEMENT_ES_INFO_LENGTH_MASK;
-
-    output_element->es_info_length = 0;
     output_element->es_info_length |= es_info_length_first_part << 8;
     output_element->es_info_length |= element_stream_data[4];
 
     output_element->es_info_descriptors_data = NULL;
-
     if (output_element->es_info_length != 0) {
         output_element->es_info_descriptors_data =
             element_stream_data + MPEG_TS_PSI_PMT_STREAM_ELEMENT_DESCRIPTORS_OFFSET;

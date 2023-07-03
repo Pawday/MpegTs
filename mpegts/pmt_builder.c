@@ -334,7 +334,7 @@ bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_
      *  0b00_00101_0
      *       ^^^^^ --select this and shift to 1 byte rigth
      */
-    output_table->version_number = (table_data[5] & MPEG_TS_PSI_PMT_VERSION_NUMBER_MASK) >> 1;
+    output_table->version_number |= (table_data[5] & MPEG_TS_PSI_PMT_VERSION_NUMBER_MASK) >> 1;
 
     /*
      * table_data:
