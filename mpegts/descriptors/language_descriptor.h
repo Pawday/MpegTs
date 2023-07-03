@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mpegts/descriptor.h>
+#include "mpegts/descriptor.h"
 
 #define MPEG_TS_LANGUAGE_DESCRIPTOR_SIZE 4
 
@@ -21,11 +21,7 @@ typedef struct
     MpegTsLanguageDescriptorAudioType_e audio_type;
 } MpegTsLanguageDescriptor_t;
 
-typedef struct
-{
-    bool has_value;
-    MpegTsLanguageDescriptor_t value;
-} OptionalMpegTsLanguageDescriptor_t;
 
 MpegTsLanguageDescriptorAudioType_e mpeg_ts_language_descriptor_audio_type_from_num(uint8_t num);
-OptionalMpegTsLanguageDescriptor_t mpeg_ts_language_descriptor_from_raw_descriptor(MpegTsDescriptor_t *raw_descriptor);
+bool mpeg_ts_language_descriptor_from_raw_descriptor(MpegTsDescriptor_t *raw_descriptor,
+    MpegTsLanguageDescriptor_t *output_lang_descriptor);

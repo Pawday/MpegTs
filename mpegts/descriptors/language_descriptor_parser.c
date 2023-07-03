@@ -25,27 +25,23 @@ MpegTsLanguageDescriptorAudioType_e mpeg_ts_language_descriptor_audio_type_from_
     return MPEGTS_AUDIO_TYPE_RESERVED;
 }
 
-OptionalMpegTsLanguageDescriptor_t mpeg_ts_language_descriptor_from_raw_descriptor(
-    MpegTsDescriptor_t *raw_descriptor)
+bool mpeg_ts_language_descriptor_from_raw_descriptor(MpegTsDescriptor_t *raw_descriptor,
+    MpegTsLanguageDescriptor_t *output_lang_descriptor)
 {
-    const OptionalMpegTsLanguageDescriptor_t bad_value = {.has_value = false, .value = {0}};
-
     if (raw_descriptor->tag != ISO_639_LANGUAGE_DESCRIPTOR) {
-        return bad_value;
+        return false;
     }
 
     if (raw_descriptor->length != MPEG_TS_LANGUAGE_DESCRIPTOR_SIZE) {
-        return bad_value;
+        return false;
     }
-
-    OptionalMpegTsLanguageDescriptor_t ret_val = {0};
 
     uint8_t audio_type_num = raw_descriptor->data[3];
 
-    ret_val.has_value = true;
-    ret_val.value.audio_type = mpeg_ts_language_descriptor_audio_type_from_num(audio_type_num);
-    ret_val.value.audio_type_num = audio_type_num;
-    memcpy(ret_val.value.language_code, raw_descriptor->data, 3);
+    output_lang_descriptor->audio_type =
+        mpeg_ts_language_descriptor_audio_type_from_num(audio_type_num);
+    output_lang_descriptor->audio_type_num = audio_type_num;
+    memcpy(output_lang_descriptor->language_code, raw_descriptor->data, 3);
 
-    return ret_val;
+    return true;
 }

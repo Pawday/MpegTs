@@ -1,6 +1,5 @@
 #include <assert.h>
 
-
 #include "descriptor_dumper.h"
 #include "descriptor_parser.h"
 
@@ -12,13 +11,15 @@ static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to
 {
     switch (descriptor_to_dump->tag) {
     case ISO_639_LANGUAGE_DESCRIPTOR: {
-        OptionalMpegTsLanguageDescriptor_t opt_lang_desc =
-            mpeg_ts_language_descriptor_from_raw_descriptor(descriptor_to_dump);
+        MpegTsLanguageDescriptor_t lang_descriptor = {0};
 
-        assert(opt_lang_desc.has_value);
+        bool parse_lang_descriptor_status =
+            mpeg_ts_language_descriptor_from_raw_descriptor(descriptor_to_dump, &lang_descriptor);
 
-        if (opt_lang_desc.has_value) {
-            mpeg_ts_dump_language_descriptor_content_json_to_stream(&opt_lang_desc.value, stream);
+        assert(parse_lang_descriptor_status);
+
+        if (parse_lang_descriptor_status) {
+            mpeg_ts_dump_language_descriptor_content_json_to_stream(&lang_descriptor, stream);
             return true;
         }
     }
@@ -75,7 +76,6 @@ void mpeg_ts_dump_descriptors_json_to_stream(uint8_t *first_descriptor_location,
         }
 
         mpeg_ts_dump_descriptor_json_to_stream(&descriptor_to_dump, stream);
-
 
         if (descriptor_index + 1 != descriptors_amount) {
             fputc(',', stream);
