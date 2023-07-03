@@ -52,10 +52,10 @@ typedef enum
     ISO_IEC_23008_3_AUDIO_MAIN,                                                               // 0x2D
     ISO_IEC_23008_3_AUDIO_AUXILIARY,                                                          // 0x2E
     QUALITY_ACCESS_UNITS,                                                                     // 0x2F
-                                                                                              // 0x30->0x7E Reserved
+    //Reserved                                                                                // 0x30->0x7E
     IPMP_STREAM,                                                                              // 0x7F
     STREAM_TYPE_USER_PRIVATE,                                                                 // 0x80->0xFF
-    STREAM_TYPE_RESERVED                                                                      // 0x00, 0x30->0x7E
+    STREAM_TYPE_RESERVED                                                                      // 0x00
 } MpegTsStreamType_e;
 
 MpegTsStreamType_e mpeg_ts_int_to_stream_type(uint8_t type);

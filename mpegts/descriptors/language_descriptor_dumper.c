@@ -1,6 +1,5 @@
-#include "language_descriptor_dumper.h"
-
 #include "language_descriptor_converters.h"
+#include "language_descriptor_dumper.h"
 
 void mpeg_ts_dump_language_descriptor_content_json_to_stream(
     MpegTsLanguageDescriptor_t *descriptor_to_dump, FILE *stream)

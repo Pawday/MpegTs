@@ -1,8 +1,8 @@
 #include <limits.h>
 #include <memory.h>
 
-#include "mpegts/packet_magics.h"
 #include "packet_header.h"
+#include "packet_magics.h"
 
 bool mpeg_ts_parse_packet_header(MpegTsPacketHeader_t *output_header, const uint8_t *buffer,
     size_t buffer_size)
