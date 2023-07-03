@@ -128,7 +128,15 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
         return VBI_TELETEXT_DESCRIPTOR;
     }
 
-    if (desctiptor_tag_as_int >= 0x47 && desctiptor_tag_as_int <= 0x55) {
+    if (desctiptor_tag_as_int >= 0x47 && desctiptor_tag_as_int <= 0x51) {
+        return MPEG_DESCRIPTOR_USER_PRIVATE;
+    }
+
+    if (desctiptor_tag_as_int == 0x52) {
+        return STREAM_IDENTIFIER_DESCRIPTOR;
+    }
+
+    if (desctiptor_tag_as_int >= 0x53 && desctiptor_tag_as_int <= 0x55) {
         return MPEG_DESCRIPTOR_USER_PRIVATE;
     }
 
@@ -248,6 +256,8 @@ const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_ta
         return "VBI Teletext Descriptor";
     case TELETEXT_DESCRIPTOR:
         return "Teletext Descriptor";
+    case STREAM_IDENTIFIER_DESCRIPTOR:
+        return "Stream Identifier Descriptor";
     case MPEG_DESCRIPTOR_USER_PRIVATE:
         return "User Private Descriptor";
     case MPEG_DESCRIPTOR_RESERVED:

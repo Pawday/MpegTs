@@ -6,6 +6,8 @@
 #include "descriptors/language_descriptor_dumper.h"
 #include "descriptors/teletext_descriptor_dumper.h"
 
+#define STREAM_IDENTIFIER_DESCRIPTOR_SIZE 1
+
 static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
     switch (descriptor_to_dump->tag) {
@@ -39,6 +41,17 @@ static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to
         } else {
             return false;
         }
+    }
+    case STREAM_IDENTIFIER_DESCRIPTOR: {
+        if (descriptor_to_dump->length != STREAM_IDENTIFIER_DESCRIPTOR_SIZE) {
+            return false;
+        }
+
+        fprintf(stream, "{");
+        fprintf(stream, "\"component_tag\":0x%" PRIx8, descriptor_to_dump->data[0]);
+        fprintf(stream, "}");
+
+        return true;
     }
     default:
         return false;

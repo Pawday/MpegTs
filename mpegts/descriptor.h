@@ -62,7 +62,9 @@ typedef enum
     EXTENSION_DESCRIPTOR,                        // 0x3F
     // Private                                   // 0x40->0x45
     VBI_TELETEXT_DESCRIPTOR,                     // 0x46
-    // Private                                   // 0x47->0x55
+    // Private                                   // 0x47->0x51
+    STREAM_IDENTIFIER_DESCRIPTOR,                // 0x52
+    // Private                                   // 0x53->0x55
     TELETEXT_DESCRIPTOR,                         // 0x56
     // Private                                   // 0x57->0xFF
 
