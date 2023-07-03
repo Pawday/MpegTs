@@ -14,11 +14,11 @@ endif()
 
 
 target_sources(MpegTS PRIVATE
-	packet_header_parser.c
-	packet_inplace_parser.c
 	descriptor_converters.c
 	descriptor_dumper.c
 	descriptor_parser.c
+	packet_header_parser.c
+	packet_inplace_parser.c
 	pmt_builder.c
 	pmt_dumper.c
 	pmt_stream_element.c

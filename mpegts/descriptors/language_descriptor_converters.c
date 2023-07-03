@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "language_descriptor_convertors.h"
+#include "language_descriptor_converters.h"
 
 const char *mpeg_ts_language_descriptor_audio_type_to_string(
     MpegTsLanguageDescriptorAudioType_e audio_type)

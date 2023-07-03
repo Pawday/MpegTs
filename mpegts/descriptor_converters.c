@@ -120,7 +120,23 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
         return EXTENSION_DESCRIPTOR;
     }
 
-    assert(desctiptor_tag_as_int >= 0x40 && desctiptor_tag_as_int <= 0xFF);
+    if (desctiptor_tag_as_int >= 0x40 && desctiptor_tag_as_int <= 0x45) {
+        return MPEG_DESCRIPTOR_USER_PRIVATE;
+    }
+
+    if (desctiptor_tag_as_int == 0x46) {
+        return VBI_TELETEXT_DESCRIPTOR;
+    }
+
+    if (desctiptor_tag_as_int >= 0x47 && desctiptor_tag_as_int <= 0x55) {
+        return MPEG_DESCRIPTOR_USER_PRIVATE;
+    }
+
+    if (desctiptor_tag_as_int == 0x56) {
+        return TELETEXT_DESCRIPTOR;
+    }
+
+    assert(desctiptor_tag_as_int >= 0x57 && desctiptor_tag_as_int <= 0xFF);
 
     return MPEG_DESCRIPTOR_USER_PRIVATE;
 }
@@ -128,7 +144,6 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
 const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_tag)
 {
     switch (descriptor_tag) {
-
     case MPEG_DESCRIPTOR_FORBIDDEN:
         return "Forbidden";
     case VIDEO_STREAM_DESCRIPTOR:
@@ -229,6 +244,10 @@ const char *mpeg_ts_descriptor_tag_to_string(MpegTsDescriptorTag_e descriptor_ta
         return "HEVC Video Descriptor";
     case EXTENSION_DESCRIPTOR:
         return "Extension Descriptor";
+    case VBI_TELETEXT_DESCRIPTOR:
+        return "VBI Teletext Descriptor";
+    case TELETEXT_DESCRIPTOR:
+        return "Teletext Descriptor";
     case MPEG_DESCRIPTOR_USER_PRIVATE:
         return "User Private Descriptor";
     case MPEG_DESCRIPTOR_RESERVED:

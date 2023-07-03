@@ -3,9 +3,8 @@
 #include "descriptor_dumper.h"
 #include "descriptor_parser.h"
 
-#include "descriptors/language_descriptor_convertors.h"
 #include "descriptors/language_descriptor_dumper.h"
-#include "mpegts/descriptors/language_descriptor.h"
+#include "descriptors/teletext_descriptor_dumper.h"
 
 static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
@@ -21,6 +20,24 @@ static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to
         if (parse_lang_descriptor_status) {
             mpeg_ts_dump_language_descriptor_content_json_to_stream(&lang_descriptor, stream);
             return true;
+        } else {
+            return false;
+        }
+    }
+    case TELETEXT_DESCRIPTOR: {
+        MpegTsTeletextDescriptor_t teletext_descriptor = {0};
+
+        bool parse_teletext_descriptor_status =
+            mpeg_ts_teletext_descriptor_from_raw_descriptor(descriptor_to_dump,
+                &teletext_descriptor);
+
+        assert(parse_teletext_descriptor_status);
+
+        if (parse_teletext_descriptor_status) {
+            mpeg_ts_dump_teletext_descriptor_content_json_to_stream(&teletext_descriptor, stream);
+            return true;
+        } else {
+            return false;
         }
     }
     default:
@@ -33,18 +50,18 @@ void mpeg_ts_dump_descriptor_json_to_stream(MpegTsDescriptor_t *descriptor_to_du
     fprintf(stream, "{");
     fprintf(stream, "\"desctiptor_tag\":0x%" PRIx8 ",", descriptor_to_dump->tag_num);
     fprintf(stream,
-        "\"desctiptor_tag_string\":\"%s\",",
+        "\"desctiptor_tag_string\":\"%s\"",
         mpeg_ts_descriptor_tag_to_string(descriptor_to_dump->tag));
+
+    if (descriptor_to_dump->length == 0) {
+        goto end_object;
+    }
+    fprintf(stream, ",");
 
     fprintf(stream, "\"descriptor_data\":");
 
-    if (descriptor_to_dump->length == 0) {
-        fprintf(stream, "\"[]\"");
-        goto end_dumping;
-    }
-
     if (try_dump_descriptor_data_as_object(descriptor_to_dump, stream)) {
-        goto end_dumping;
+        goto end_object;
     }
 
     fprintf(stream, "[");
@@ -57,7 +74,7 @@ void mpeg_ts_dump_descriptor_json_to_stream(MpegTsDescriptor_t *descriptor_to_du
     }
     fprintf(stream, "]");
 
-end_dumping:
+end_object:
     fprintf(stream, "}");
 }
 

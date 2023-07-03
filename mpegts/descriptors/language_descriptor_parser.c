@@ -41,7 +41,9 @@ bool mpeg_ts_language_descriptor_from_raw_descriptor(MpegTsDescriptor_t *raw_des
     output_lang_descriptor->audio_type =
         mpeg_ts_language_descriptor_audio_type_from_num(audio_type_num);
     output_lang_descriptor->audio_type_num = audio_type_num;
-    memcpy(output_lang_descriptor->language_code, raw_descriptor->data, 3);
+    memcpy(output_lang_descriptor->language_code,
+        raw_descriptor->data,
+        sizeof(output_lang_descriptor->language_code));
 
     return true;
 }
