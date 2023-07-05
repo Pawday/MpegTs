@@ -8,6 +8,7 @@ add_subdirectory(mpegts)
 
 option(MPEGTS_ENABLE_TESTING "Enable compiling tests for mpegts library" ON)
 if (MPEGTS_ENABLE_TESTING)
+    enable_testing()
     message(STATUS "MPEGTS_ENABLE_TESTING is set")
     add_subdirectory(tests)
 endif()
