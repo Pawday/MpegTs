@@ -2,7 +2,7 @@
 
 #define MPEG_TS_PSI_SECTION_LENGTH_BITS              12
 #define MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET        3
-#define MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH           0x3fd // defined in standart
+#define MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH           0x3fd // defined in standard
 #define MPEG_TS_PSI_PMT_SECTION_LENGTH_LSB_OFFSET    MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET + 1
 #define MPEG_TS_PSI_PMT_SECTION_SYNTAX_INDICATOR_BIT (1 << 7)
 #define MPEG_TS_PSI_PMT_SECTION_ID                   0x02

@@ -40,7 +40,10 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
     }
 
     bool is_PES_packet_at_start = true;
-    if (is_PES_packet_at_start) {
+    if (is_PES_packet_at_start) { // that condition is always true, but its part of the pattern
+                                  // below with sequantial conditional reassign
+                                  // and IMO its more readable
+                                  // (i hope after this commet for you too)
 
         is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length] == 0;
         //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -200,7 +203,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
     }
 
     if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
-        return PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED;
+        return PMT_BUILDER_SEND_STATUS_REDUNDANT_PACKET_REJECTED;
     }
 
     builder->last_packet_header = packet->header;
@@ -230,7 +233,7 @@ MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMT
     MpegTsPacket_t *packet)
 {
     if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
-        return PMT_BUILDER_SEND_STATUS_REDUDANT_PACKET_REJECTED;
+        return PMT_BUILDER_SEND_STATUS_REDUNDANT_PACKET_REJECTED;
     }
 
     if (builder->state == PMT_BUILDER_STATE_EMPTY) {

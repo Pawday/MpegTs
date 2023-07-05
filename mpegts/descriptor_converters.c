@@ -2,9 +2,9 @@
 
 #include "descriptor.h"
 
-MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_int)
+MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t descriptor_tag_as_int)
 {
-    switch (desctiptor_tag_as_int) {
+    switch (descriptor_tag_as_int) {
     case 0x00:
         return MPEG_DESCRIPTOR_RESERVED;
     case 0x01:
@@ -45,11 +45,11 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
         return IBP_DESCRIPTOR;
     }
 
-    if (desctiptor_tag_as_int >= 0x13 && desctiptor_tag_as_int <= 0x1A) {
+    if (descriptor_tag_as_int >= 0x13 && descriptor_tag_as_int <= 0x1A) {
         return ISO_IEC_13818_6;
     }
 
-    switch (desctiptor_tag_as_int) {
+    switch (descriptor_tag_as_int) {
     case 0x1B:
         return MPEG_4_VIDEO_DESCRIPTOR;
     case 0x1C:
@@ -112,39 +112,39 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t desctiptor_tag_as_in
         return HEVC_VIDEO_DESCRIPTOR;
     }
 
-    if (desctiptor_tag_as_int >= 0x39 && desctiptor_tag_as_int <= 0x3E) {
+    if (descriptor_tag_as_int >= 0x39 && descriptor_tag_as_int <= 0x3E) {
         return MPEG_DESCRIPTOR_RESERVED;
     }
 
-    if (desctiptor_tag_as_int == 0x3F) {
+    if (descriptor_tag_as_int == 0x3F) {
         return EXTENSION_DESCRIPTOR;
     }
 
-    if (desctiptor_tag_as_int >= 0x40 && desctiptor_tag_as_int <= 0x45) {
+    if (descriptor_tag_as_int >= 0x40 && descriptor_tag_as_int <= 0x45) {
         return MPEG_DESCRIPTOR_USER_PRIVATE;
     }
 
-    if (desctiptor_tag_as_int == 0x46) {
+    if (descriptor_tag_as_int == 0x46) {
         return VBI_TELETEXT_DESCRIPTOR;
     }
 
-    if (desctiptor_tag_as_int >= 0x47 && desctiptor_tag_as_int <= 0x51) {
+    if (descriptor_tag_as_int >= 0x47 && descriptor_tag_as_int <= 0x51) {
         return MPEG_DESCRIPTOR_USER_PRIVATE;
     }
 
-    if (desctiptor_tag_as_int == 0x52) {
+    if (descriptor_tag_as_int == 0x52) {
         return STREAM_IDENTIFIER_DESCRIPTOR;
     }
 
-    if (desctiptor_tag_as_int >= 0x53 && desctiptor_tag_as_int <= 0x55) {
+    if (descriptor_tag_as_int >= 0x53 && descriptor_tag_as_int <= 0x55) {
         return MPEG_DESCRIPTOR_USER_PRIVATE;
     }
 
-    if (desctiptor_tag_as_int == 0x56) {
+    if (descriptor_tag_as_int == 0x56) {
         return TELETEXT_DESCRIPTOR;
     }
 
-    assert(desctiptor_tag_as_int >= 0x57 && desctiptor_tag_as_int <= 0xFF);
+    assert(descriptor_tag_as_int >= 0x57 && descriptor_tag_as_int <= 0xFF);
 
     return MPEG_DESCRIPTOR_USER_PRIVATE;
 }

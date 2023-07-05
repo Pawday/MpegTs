@@ -61,9 +61,9 @@ static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to
 void mpeg_ts_dump_descriptor_json_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)
 {
     fprintf(stream, "{");
-    fprintf(stream, "\"desctiptor_tag\":0x%" PRIx8 ",", descriptor_to_dump->tag_num);
+    fprintf(stream, "\"descriptor_tag\":0x%" PRIx8 ",", descriptor_to_dump->tag_num);
     fprintf(stream,
-        "\"desctiptor_tag_string\":\"%s\"",
+        "\"descriptor_tag_string\":\"%s\"",
         mpeg_ts_descriptor_tag_to_string(descriptor_to_dump->tag));
 
     if (descriptor_to_dump->length == 0) {
