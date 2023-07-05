@@ -3,6 +3,7 @@
 #include "descriptor_dumper.h"
 #include "descriptor_parser.h"
 
+#include "descriptors/conditional_access_descriptor_dumper.h"
 #include "descriptors/language_descriptor_dumper.h"
 #include "descriptors/teletext_descriptor_dumper.h"
 
@@ -52,6 +53,23 @@ static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to
         fprintf(stream, "}");
 
         return true;
+    }
+    case CA_DESCRIPTOR: {
+
+        MpegTsCADescriptor_t ca_descriptor = {0};
+
+        bool parse_ca_descriptor_status =
+            mpeg_ts_conditional_access_descriptor_from_raw_descriptor(descriptor_to_dump,
+                &ca_descriptor);
+
+        assert(parse_ca_descriptor_status);
+
+        if (parse_ca_descriptor_status) {
+            mpeg_ts_dump_ca_descriptor_content_json_to_stream(&ca_descriptor, stream);
+            return true;
+        } else {
+            return false;
+        }
     }
     default:
         return false;
