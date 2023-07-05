@@ -176,7 +176,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
 
     if (is_pmt_single_packed) {
         builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;
-        return PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED;
+        return PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED;
     } else {
         builder->state = PMT_BUILDER_STATE_TABLE_IS_BUILDING;
         return PMT_BUILDER_SEND_STATUS_NEED_MORE_PACKETS;

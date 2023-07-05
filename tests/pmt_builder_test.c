@@ -24,7 +24,7 @@ int main()
     MpegTsPMTBuilderSendPacketStatus_e parse_status =
         mpeg_ts_pmt_builder_try_send_packet(&builder, &packet);
 
-    assert(parse_status == PMT_BUILDER_SEND_STATUS_SMALL_TABLE_IS_ASSEMBLED);
+    assert(parse_status == PMT_BUILDER_SEND_STATUS_TABLE_IS_ASSEMBLED);
 
     MpegTsPMT_t table = {0};
 

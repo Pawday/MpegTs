@@ -11,6 +11,7 @@
    - [ ] MpegTsAdaptationField
    - [ ] MpegTsDescriptor
       - [x] MpegTsLanguageDescriptor
+      - [x] MpegTsTeletextDescriptor
  * Builders:
    - [ ] MpegTsPATBuilder  (Program association table builder) 
    - [x] MpegTsPMTBuilder  (Program map table builder) 
