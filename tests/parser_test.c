@@ -45,7 +45,7 @@ static void parse_two_merged_packets_test(void)
     assert(packets_buffer[2].payload == NULL);
 }
 
-int main()
+int main(void)
 {
     parse_single_packet_test();
     parse_two_merged_packets_test();
