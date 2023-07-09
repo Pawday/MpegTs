@@ -1,3 +1,4 @@
+#include "mpegts/psi_magics.h"
 #include "test_data.h"
 #include <assert.h>
 
@@ -32,7 +33,8 @@ static void test_pmt_from_single_packet(void)
 
     assert(build_table_status);
 
-    assert(table.section_length == PACKET_WITH_SMALL_PMT_SECTION_LENGTH);
+    assert(table.section_length ==
+           PACKET_WITH_SMALL_PMT_SECTION_LENGTH - MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
     assert(table.CRC == 0xf64a0355);
     assert(table.program_number == 0x1);
     assert(table.version_number == 0);
@@ -200,7 +202,6 @@ static void test_pmt_low_memory_report(void)
 
     assert(send_status == PMT_BUILDER_SEND_STATUS_NOT_ENOUGHT_MEMORY);
 }
-
 
 int main(void)
 {

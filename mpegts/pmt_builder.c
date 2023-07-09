@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <memory.h>
 
+#include "mpegts/psi_magics.h"
 #include "pmt_builder.h"
 
 void mpeg_ts_pmt_builder_init(MpegTsPMTBuilder_t *builder, uint8_t *build_buffer,
@@ -147,11 +148,12 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
 
     section_length |= (length_part_from_byte1 << 8) | length_part_from_byte2;
 
-    if (section_length >= MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH) {
+    if (section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET >=
+        MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH) {
         return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
-    if (section_length > builder->table_data_capacity) {
+    if (section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET > builder->table_data_capacity) {
         return PMT_BUILDER_SEND_STATUS_NOT_ENOUGHT_MEMORY;
     }
 

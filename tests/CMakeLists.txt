@@ -10,6 +10,10 @@ if (${CMAKE_C_COMPILER_ID} STREQUAL "GCC" OR ${CMAKE_C_COMPILER_ID} STREQUAL "Cl
     target_compile_options(MpegTsTestsCommon PUBLIC "-Wall" "-Wextra" "-Werror" "-pedantic")
 endif()
 
+target_compile_options(MpegTsTestsCommon PUBLIC "-fsanitize=address")
+target_link_options(MpegTsTestsCommon PUBLIC "-fsanitize=address")
+
+
 if (${CMAKE_C_COMPILER_ID} STREQUAL "GCC")
     target_compile_options(MpegTsTestsCommon PUBLIC "-Wno-missing-braces") # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53119
 endif()
