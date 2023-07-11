@@ -163,18 +163,21 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
                                                    MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET);
 
     uint16_t mpeg_ts_payload_or_section_size = MPEG_TS_PACKET_PAYLOAD_SIZE;
-
     if (section_length < mpeg_ts_payload_or_section_size) {
         mpeg_ts_payload_or_section_size =
             section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_LSB_OFFSET;
     }
 
+    if (mpeg_ts_payload_or_section_size < section_offset + current_packet_payload_offset) {
+        return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
+    }
+
     memcpy(builder->table_data + builder->table_data_put_offset,
         section_data,
-        mpeg_ts_payload_or_section_size - section_offset - current_packet_payload_offset);
+        mpeg_ts_payload_or_section_size - (section_offset + current_packet_payload_offset));
 
     builder->table_data_put_offset +=
-        mpeg_ts_payload_or_section_size - section_offset - current_packet_payload_offset;
+        mpeg_ts_payload_or_section_size - (section_offset - current_packet_payload_offset);
 
     builder->last_packet_header = packet->header;
     builder->table_length = section_length;
