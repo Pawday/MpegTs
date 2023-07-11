@@ -25,7 +25,7 @@ MpegTsTeletextDescriptorType_e mpeg_ts_teletext_descriptor_type_from_num(
         return TELETEXT_TYPE_RESERVED;
     }
 
-    assert("IMPOSSIBLE TELETEXT TYPE");
+    assert(false && "IMPOSSIBLE TELETEXT TYPE");
 
     return TELETEXT_TYPE_IMPOSSIBLE;
 }

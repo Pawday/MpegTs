@@ -20,7 +20,7 @@ const char *mpeg_ts_language_descriptor_audio_type_to_string(
         return "Reserved";
     }
 
-    assert("Should be unreachable");
+    assert(false && "Should be unreachable");
 
     return "UNHANDLED MPEGTS_AUDIO_TYPE";
 }

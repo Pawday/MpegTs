@@ -19,11 +19,11 @@ const char *mpeg_ts_teletext_descriptor_type_to_string(MpegTsTeletextDescriptorT
     case TELETEXT_TYPE_HEARING_IMPAIRED_PAGE:
         return "Hearing Impaired Page";
     case TELETEXT_TYPE_IMPOSSIBLE:
-        assert("IMPOSSIBLE TELETEXT TYPE");
+        assert(false && "IMPOSSIBLE TELETEXT TYPE");
         break;
     }
 
-    assert("Should be unreachable");
+    assert(false && "Should be unreachable");
 
     return "UNHANDLED MPEG_TS_TELETEXT_TYPE";
 }
