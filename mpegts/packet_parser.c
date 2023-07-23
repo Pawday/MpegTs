@@ -1,4 +1,4 @@
-#include "packet_inplace_parser.h"
+#include "packet_parser.h"
 
 static bool find_first_sync_byte(size_t *output_byte_location_offset, const uint8_t *buffer,
     size_t buffer_size)
@@ -23,7 +23,7 @@ static bool find_first_sync_byte(size_t *output_byte_location_offset, const uint
     return true;
 }
 
-bool mpeg_ts_parse_packet_inplace(MpegTsPacket_t *output_packet, const uint8_t *buffer,
+bool mpeg_ts_parse_packet(MpegTsPacket_t *output_packet, const uint8_t *buffer,
     size_t buffer_size)
 {
     if (buffer_size < MPEG_TS_PACKET_SIZE) {
@@ -54,7 +54,7 @@ bool mpeg_ts_parse_packet_inplace(MpegTsPacket_t *output_packet, const uint8_t *
     return true;
 }
 
-size_t mpeg_ts_parse_packets_inplace(const uint8_t *buffer, size_t buffer_size,
+size_t mpeg_ts_parse_packets(const uint8_t *buffer, size_t buffer_size,
     MpegTsPacket_t *packets_array, size_t packets_array_size)
 {
     size_t packets_parsed_so_far = 0;
@@ -71,17 +71,17 @@ size_t mpeg_ts_parse_packets_inplace(const uint8_t *buffer, size_t buffer_size,
         }
 
         MpegTsPacket_t next_packet = {0};
-        bool is_next_packet_parsed = mpeg_ts_parse_packet_inplace(&next_packet,
+        bool is_next_packet_parsed = mpeg_ts_parse_packet(&next_packet,
             buffer + next_packet_location_offset,
             buffer_size - next_packet_location_offset);
-        if (!is_next_packet_parsed) {
-            break;
-        }
 
         next_packet_location_offset += MPEG_TS_PACKET_SIZE;
 
-        packets_array[packets_parsed_so_far] = next_packet;
+        if (!is_next_packet_parsed) {
+            continue;
+        }
 
+        packets_array[packets_parsed_so_far] = next_packet;
         packets_parsed_so_far++;
     }
 

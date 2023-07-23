@@ -2,7 +2,7 @@
 #include "test_data.h"
 #include <assert.h>
 
-#include <mpegts/packet_inplace_parser.h>
+#include <mpegts/packet_parser.h>
 #include <mpegts/pmt_builder.h>
 #include <mpegts/pmt_stream_element.h>
 
@@ -16,7 +16,7 @@ static void test_pmt_from_single_packet(void)
     IOVec packet_with_small_pmt = test_data_get_packet_with_pmt();
     MpegTsPacket_t packet = {0};
 
-    bool packet_parse_status = mpeg_ts_parse_packet_inplace(&packet,
+    bool packet_parse_status = mpeg_ts_parse_packet(&packet,
         packet_with_small_pmt.data,
         packet_with_small_pmt.size);
 
@@ -89,13 +89,13 @@ static void test_pmt_from_2_packets(void)
     IOVec packet_data_1 = test_data_get_packet_with_pmt_part_1();
     MpegTsPacket_t packet_1 = {0};
     bool packet_1_parse_status =
-        mpeg_ts_parse_packet_inplace(&packet_1, packet_data_1.data, packet_data_1.size);
+        mpeg_ts_parse_packet(&packet_1, packet_data_1.data, packet_data_1.size);
     assert(packet_1_parse_status);
 
     IOVec packet_data_2 = test_data_get_packet_with_pmt_part_2();
     MpegTsPacket_t packet_2 = {0};
     bool packet_2_parse_status =
-        mpeg_ts_parse_packet_inplace(&packet_2, packet_data_2.data, packet_data_2.size);
+        mpeg_ts_parse_packet(&packet_2, packet_data_2.data, packet_data_2.size);
     assert(packet_2_parse_status);
 
     MpegTsPMTBuilderSendPacketStatus_e first_send_status =
@@ -130,18 +130,18 @@ static void test_pmt_builder_messup_packets(void)
     IOVec packet_data_1 = test_data_get_packet_with_pmt_part_1();
     MpegTsPacket_t packet_1 = {0};
     bool packet_1_parse_status =
-        mpeg_ts_parse_packet_inplace(&packet_1, packet_data_1.data, packet_data_1.size);
+        mpeg_ts_parse_packet(&packet_1, packet_data_1.data, packet_data_1.size);
     assert(packet_1_parse_status);
 
     IOVec packet_data_2 = test_data_get_packet_with_pmt_part_2();
     MpegTsPacket_t packet_2 = {0};
     bool packet_2_parse_status =
-        mpeg_ts_parse_packet_inplace(&packet_2, packet_data_2.data, packet_data_2.size);
+        mpeg_ts_parse_packet(&packet_2, packet_data_2.data, packet_data_2.size);
     assert(packet_2_parse_status);
 
     IOVec unrelated_packet_data = test_data_get_raw_packet();
     MpegTsPacket_t unrelated_packet = {0};
-    bool unrelated_packet_parse_status = mpeg_ts_parse_packet_inplace(&unrelated_packet,
+    bool unrelated_packet_parse_status = mpeg_ts_parse_packet(&unrelated_packet,
         unrelated_packet_data.data,
         unrelated_packet_data.size);
     assert(unrelated_packet_parse_status);
@@ -191,7 +191,7 @@ static void test_pmt_low_memory_report(void)
     IOVec packet_with_small_pmt = test_data_get_packet_with_pmt();
     MpegTsPacket_t packet = {0};
 
-    bool packet_parse_status = mpeg_ts_parse_packet_inplace(&packet,
+    bool packet_parse_status = mpeg_ts_parse_packet(&packet,
         packet_with_small_pmt.data,
         packet_with_small_pmt.size);
 

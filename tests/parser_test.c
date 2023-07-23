@@ -2,7 +2,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-#include <mpegts/packet_inplace_parser.h>
+#include <mpegts/packet_parser.h>
 
 #include "test_data.h"
 
@@ -13,7 +13,7 @@ static void parse_single_packet_test(void)
     MpegTsPacket_t packet;
 
     bool packet_parse_status =
-        mpeg_ts_parse_packet_inplace(&packet, data_block.data, data_block.size);
+        mpeg_ts_parse_packet(&packet, data_block.data, data_block.size);
 
     assert(packet_parse_status);
 
@@ -36,7 +36,7 @@ static void parse_two_merged_packets_test(void)
     memset(packets_buffer, 0, sizeof(packets_buffer));
 
     size_t parsed_packets_amount =
-        mpeg_ts_parse_packets_inplace(data_block.data, data_block.size, packets_buffer, 5);
+        mpeg_ts_parse_packets(data_block.data, data_block.size, packets_buffer, 5);
 
     assert(parsed_packets_amount == 2);
 

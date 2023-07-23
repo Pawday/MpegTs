@@ -73,7 +73,7 @@ static bool try_dump_descriptor_data_as_object(MpegTsDescriptor_t *descriptor_to
     }
     default:
         return false;
-    };
+    }
 }
 
 void mpeg_ts_dump_descriptor_json_to_stream(MpegTsDescriptor_t *descriptor_to_dump, FILE *stream)

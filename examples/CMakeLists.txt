@@ -1,0 +1,6 @@
+add_executable(MpegTsPMTDumper)
+target_sources(MpegTsPMTDumper PRIVATE file_pmt_dumper.c)
+target_link_libraries(MpegTsPMTDumper PRIVATE MpegTS)
+if (MSVC)
+    target_compile_definitions(MpegTsPMTDumper PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
