@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <memory.h>
 
+#include "mpegts/packet.h"
+#include "mpegts/packet_header.h"
 #include "mpegts/psi_magics.h"
 #include "pmt_builder.h"
 
@@ -24,20 +26,22 @@ void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder)
     builder->last_packet_header = empty_header;
 }
 
-static bool is_start_pmt_packet(MpegTsPacket_t *packet)
+static bool is_start_pmt_packet(MpegTsPacket_t packet, MpegTsPacketHeader_t *packet_header)
 {
-    if (packet->header.pid == MPEG_TS_NULL_PACKET_PID ||
-        packet->header.adaptation_field_control == ADAPTATION_FIELD_ONLY) {
+    if (packet_header->pid == MPEG_TS_NULL_PACKET_PID ||
+        packet_header->adaptation_field_control == ADAPTATION_FIELD_ONLY) {
         return false;
     }
 
-    if (!packet->header.payload_unit_start_indicator) {
+    if (!packet_header->payload_unit_start_indicator) {
         return false;
     }
+
+    uint8_t *packet_payload = mpeg_ts_packet_get_payload(packet);
 
     uint8_t current_packet_adapt_field_length = 0;
-    if (packet->header.adaptation_field_control == ADAPTATION_FIELD_AND_PAYLOAD) {
-        current_packet_adapt_field_length += packet->payload[0];
+    if (packet_header->adaptation_field_control == ADAPTATION_FIELD_AND_PAYLOAD) {
+        current_packet_adapt_field_length += packet_payload[0];
     }
 
     bool is_PES_packet_at_start = true;
@@ -46,16 +50,16 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
                                   // and IMO its more readable
                                   // (i hope after this commet for you too)
 
-        is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length] == 0;
+        is_PES_packet_at_start &= packet_payload[current_packet_adapt_field_length] == 0;
         //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         //                                 can be PSI pointer_field
     }
     if (is_PES_packet_at_start) {
         // can be PAS table_id if pointer_field == 0
-        is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length + 1] == 0;
+        is_PES_packet_at_start &= packet_payload[current_packet_adapt_field_length + 1] == 0;
     }
     if (is_PES_packet_at_start) {
-        is_PES_packet_at_start &= packet->payload[current_packet_adapt_field_length + 2] == 1;
+        is_PES_packet_at_start &= packet_payload[current_packet_adapt_field_length + 2] == 1;
     }
     // actualy it can be PAS table if pointer_field (packet->data[0]) is 0
     // Filters above cannot distinct PES and PAS
@@ -65,8 +69,8 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
     }
 
     uint8_t section_offset =
-        packet->payload[current_packet_adapt_field_length]; // aka PSI pointer_field
-    section_offset += 1;                                    // include itself to make offset
+        packet_payload[current_packet_adapt_field_length]; // aka PSI pointer_field
+    section_offset += 1;                                   // include itself to make offset
 
     /*
      * section_data:
@@ -79,7 +83,7 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
      *    (0x02)
      */
     const uint8_t *section_data =
-        packet->payload + section_offset + current_packet_adapt_field_length;
+        packet_payload + current_packet_adapt_field_length + section_offset;
 
     if (section_data[0] != MPEG_TS_PSI_PMT_SECTION_ID) {
         return false;
@@ -89,19 +93,20 @@ static bool is_start_pmt_packet(MpegTsPacket_t *packet)
 }
 
 static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacket_t *packet)
+    MpegTsPacket_t packet, MpegTsPacketHeader_t *packet_header)
 {
     assert(builder->state == PMT_BUILDER_STATE_EMPTY);
     assert(builder->table_data_put_offset == 0);
 
+    uint8_t *packet_payload = mpeg_ts_packet_get_payload(packet);
+
     uint8_t current_packet_payload_offset = 0;
-    if (packet->header.adaptation_field_control == ADAPTATION_FIELD_AND_PAYLOAD) {
-        current_packet_payload_offset += packet->payload[0];
+    if (packet_header->adaptation_field_control == ADAPTATION_FIELD_AND_PAYLOAD) {
+        current_packet_payload_offset += packet_payload[0];
     }
 
-    uint8_t section_offset =
-        packet->payload[current_packet_payload_offset]; // aka PSI pointer_field
-    section_offset += 1;                                // include itself to make offset
+    uint8_t section_offset = packet_payload[current_packet_payload_offset]; // aka PSI pointer_field
+    section_offset += 1; // include itself to make offset
 
     /*
      * section_data:
@@ -117,7 +122,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
      *   section_syntax_indicator
      *        (should be set)
      */
-    const uint8_t *section_data = packet->payload + section_offset + current_packet_payload_offset;
+    const uint8_t *section_data = packet_payload + section_offset + current_packet_payload_offset;
 
     /*
      *
@@ -179,7 +184,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
     builder->table_data_put_offset +=
         mpeg_ts_payload_or_section_size - (section_offset - current_packet_payload_offset);
 
-    builder->last_packet_header = packet->header;
+    builder->last_packet_header = *packet_header;
     builder->table_length = section_length;
 
     if (is_pmt_single_packed) {
@@ -192,18 +197,18 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
 }
 
 static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacket_t *packet)
+    MpegTsPacket_t packet, MpegTsPacketHeader_t *header)
 {
     assert(builder->state != PMT_BUILDER_STATE_EMPTY);
     assert(builder->table_data_put_offset != 0);
     assert(builder->table_data_put_offset < builder->table_data_capacity);
     assert(builder->table_length <= builder->table_data_capacity);
 
-    if (packet->header.pid != builder->last_packet_header.pid) {
+    if (header->pid != builder->last_packet_header.pid) {
         return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
-    if (packet->header.continuity_counter != builder->last_packet_header.continuity_counter + 1) {
+    if (header->continuity_counter != builder->last_packet_header.continuity_counter + 1) {
         return PMT_BUILDER_SEND_STATUS_UNORDERED_PACKET_REJECTED;
     }
 
@@ -211,7 +216,7 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
         return PMT_BUILDER_SEND_STATUS_REDUNDANT_PACKET_REJECTED;
     }
 
-    builder->last_packet_header = packet->header;
+    builder->last_packet_header = *header;
 
     uint16_t data_to_send = MPEG_TS_PACKET_PAYLOAD_SIZE;
     uint16_t remainding_data = (builder->table_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) -
@@ -221,7 +226,8 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
         builder->state = PMT_BUILDER_STATE_TABLE_ASSEMBLED;
     }
 
-    memcpy(builder->table_data + builder->table_data_put_offset, packet->payload, data_to_send);
+    uint8_t *packet_payload = mpeg_ts_packet_get_payload(packet);
+    memcpy(builder->table_data + builder->table_data_put_offset, packet_payload, data_to_send);
 
     builder->table_data_put_offset += data_to_send;
 
@@ -235,20 +241,25 @@ static MpegTsPMTBuilderSendPacketStatus_e send_continuation_packet(MpegTsPMTBuil
 }
 
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacket_t *packet)
+    MpegTsPacket_t packet)
 {
     if (builder->state == PMT_BUILDER_STATE_TABLE_ASSEMBLED) {
         return PMT_BUILDER_SEND_STATUS_REDUNDANT_PACKET_REJECTED;
     }
 
-    if (builder->state == PMT_BUILDER_STATE_EMPTY) {
-        if (!is_start_pmt_packet(packet)) {
-            return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
-        }
-        return send_first_packet(builder, packet);
+    MpegTsPacketHeader_t packet_header = {0};
+    if (!mpeg_ts_parse_packet_header(&packet_header, packet)) {
+        return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
-    return send_continuation_packet(builder, packet);
+    if (builder->state == PMT_BUILDER_STATE_EMPTY) {
+        if (!is_start_pmt_packet(packet, &packet_header)) {
+            return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
+        }
+        return send_first_packet(builder, packet, &packet_header);
+    }
+
+    return send_continuation_packet(builder, packet, &packet_header);
 }
 
 bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_t *output_table)

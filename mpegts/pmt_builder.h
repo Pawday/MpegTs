@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "packet.h"
+#include "packet_header.h"
 #include "pmt.h"
 
 #define MPEG_TS_MAX_PACKETS_AMOUNT_FOR_SINGLE_PMT_TABLE 6
@@ -43,7 +44,7 @@ void mpeg_ts_pmt_builder_init(MpegTsPMTBuilder_t *builder, uint8_t *build_buffer
 void mpeg_ts_pmt_builder_reset(MpegTsPMTBuilder_t *builder);
 
 MpegTsPMTBuilderSendPacketStatus_e mpeg_ts_pmt_builder_try_send_packet(MpegTsPMTBuilder_t *builder,
-    MpegTsPacket_t *packet);
+    MpegTsPacket_t packet);
 
 /**
  * all pointers in "output_table" will lead to memory inside the "builder" struct

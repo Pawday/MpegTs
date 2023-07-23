@@ -1,4 +1,5 @@
-#include "packet_parser.h"
+#include "packet.h"
+#include "packet_header.h"
 
 static bool find_first_sync_byte(size_t *output_byte_location_offset, const uint8_t *buffer,
     size_t buffer_size)
@@ -23,8 +24,7 @@ static bool find_first_sync_byte(size_t *output_byte_location_offset, const uint
     return true;
 }
 
-bool mpeg_ts_parse_packet(MpegTsPacket_t *output_packet, const uint8_t *buffer,
-    size_t buffer_size)
+bool mpeg_ts_search_packet(MpegTsPacket_t *output_packet, const uint8_t *buffer, size_t buffer_size)
 {
     if (buffer_size < MPEG_TS_PACKET_SIZE) {
         return false;
@@ -39,22 +39,21 @@ bool mpeg_ts_parse_packet(MpegTsPacket_t *output_packet, const uint8_t *buffer,
         return false;
     }
 
-    if (buffer[sync_byte_location + MPEG_TS_PACKET_SIZE] != MPEG_TS_SYNC_BYTE) {
-        return false;
-    }
-
     const uint8_t *packet_location = buffer + sync_byte_location;
-    if (!mpeg_ts_parse_packet_header(&output_packet->header,
-            packet_location,
-            MPEG_TS_PACKET_SIZE)) {
+    if (packet_location[MPEG_TS_PACKET_SIZE] != MPEG_TS_SYNC_BYTE) {
         return false;
     }
 
-    output_packet->payload = packet_location + MPEG_TS_PACKET_HEADER_SIZE;
+    MpegTsPacketHeader_t header;
+    if (!mpeg_ts_parse_packet_header(&header, (MpegTsPacket_t)packet_location)) {
+        return false;
+    }
+
+    *output_packet = (MpegTsPacket_t)packet_location;
     return true;
 }
 
-size_t mpeg_ts_parse_packets(const uint8_t *buffer, size_t buffer_size,
+size_t mpeg_ts_search_packets(const uint8_t *buffer, size_t buffer_size,
     MpegTsPacket_t *packets_array, size_t packets_array_size)
 {
     size_t packets_parsed_so_far = 0;
@@ -70,8 +69,8 @@ size_t mpeg_ts_parse_packets(const uint8_t *buffer, size_t buffer_size,
             break;
         }
 
-        MpegTsPacket_t next_packet = {0};
-        bool is_next_packet_parsed = mpeg_ts_parse_packet(&next_packet,
+        MpegTsPacket_t next_packet = NULL;
+        bool is_next_packet_parsed = mpeg_ts_search_packet(&next_packet,
             buffer + next_packet_location_offset,
             buffer_size - next_packet_location_offset);
 

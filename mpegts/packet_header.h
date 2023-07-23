@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "packet_magics.h"
+#include "packet.h"
 
 typedef enum
 {
@@ -26,6 +26,5 @@ typedef struct
 
 } MpegTsPacketHeader_t;
 
-bool mpeg_ts_parse_packet_header(MpegTsPacketHeader_t *output_header, const uint8_t *buffer,
-    size_t buffer_size);
+bool mpeg_ts_parse_packet_header(MpegTsPacketHeader_t *output_header, MpegTsPacket_t packet);
 
