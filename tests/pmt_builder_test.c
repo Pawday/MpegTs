@@ -1,9 +1,9 @@
-#include "mpegts/psi_magics.h"
-#include "test_data.h"
-#include <assert.h>
-
 #include <mpegts/pmt_builder.h>
 #include <mpegts/pmt_stream_element.h>
+
+#include "runtime_assert.h"
+
+#include "test_data.h"
 
 static void test_pmt_from_single_packet(void)
 {

@@ -1,37 +1,18 @@
 #external test as if you are using this library
 
-list(APPEND GNU_CC_STRICT_MODE_OPTIONS
-    "-Wall"
-    "-Wextra"
-    "-Werror"
-    "-pedantic")
+set(MPEGTS_TESTS_USE_CUSTUM_ASSERT False)
 
-list(APPEND MSVC_CC_STRICT_MODE_OPTIONS "")
-
-set(CC_STRICT_MODE_OPTIONS "")
-if (${CMAKE_C_COMPILER_ID} STREQUAL "GCC")
-    set(CC_STRICT_MODE_OPTIONS ${GNU_CC_STRICT_MODE_OPTIONS})
-elseif (${CMAKE_C_COMPILER_ID} STREQUAL "Clang" AND NOT ${CMAKE_C_COMPILER_FRONTEND_VARIANT} STREQUAL "GNU")
-    set(CC_STRICT_MODE_OPTIONS ${MSVC_CC_STRICT_MODE_OPTIONS})
-else()
-    message(NOTICE "[MpegTsTests]: Unknown compiler, CC_STRICT_MODE_OPTIONS set to empty")
+if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    message(NOTICE "[MpegTsTests] using custum assert in Release mode")
+    set(MPEGTS_TESTS_USE_CUSTUM_ASSERT True)
 endif()
-
-if (${CMAKE_C_COMPILER_ID} STREQUAL "GCC")
-    # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53119
-    list(APPEND CC_STRICT_MODE_OPTIONS "-Wno-missing-braces")
-endif()
-
-add_library(MpegTsTestsCommon STATIC)
-
-if (NOT MSVC AND ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
-    target_compile_options(MpegTsTestsCommon PUBLIC "-fsanitize=address")
-    target_link_options(MpegTsTestsCommon PUBLIC "-fsanitize=address")
-endif()
-
-target_compile_options(MpegTsTestsCommon PUBLIC ${CC_STRICT_MODE_OPTIONS})
 
 add_library(MpegTsTestsData OBJECT test_data.c)
+
+add_library(MpegTsTestsCommon STATIC)
+if (MPEGTS_TESTS_USE_CUSTUM_ASSERT)
+    target_sources(MpegTsTestsCommon PRIVATE runtime_assert.c)
+endif()
 
 target_link_libraries(MpegTsTestsCommon PUBLIC MpegTS)
 target_link_libraries(MpegTsTestsCommon PUBLIC MpegTsTestsData)

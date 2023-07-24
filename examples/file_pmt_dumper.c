@@ -37,8 +37,16 @@ int main(int argc, char **argv)
     }
 
     fprintf(stderr, "[INFO]: reading file %s\n", file_name);
-    fread(file_data, 1, file_size, ts_file);
-    fprintf(stderr, "[INFO]: readen %" PRIuPTR " bytes from %s file\n", file_size, file_name);
+    size_t file_bytes_readen = fread(file_data, file_size, 1, ts_file);
+    if (file_bytes_readen != file_size) {
+        fprintf(stderr,
+            "[ERROR]: readen %" PRIuPTR " of %" PRIuPTR " bytes from %s file\n",
+            file_bytes_readen,
+            file_size,
+            file_name);
+        fclose(ts_file);
+	return EXIT_FAILURE;
+    }
 
     size_t max_packets_in_file = file_size / MPEG_TS_PACKET_SIZE + 1;
 

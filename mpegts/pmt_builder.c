@@ -158,7 +158,8 @@ static MpegTsPMTBuilderSendPacketStatus_e send_first_packet(MpegTsPMTBuilder_t *
         return PMT_BUILDER_SEND_STATUS_INVALID_PACKET_REJECTED;
     }
 
-    if (section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET > builder->table_data_capacity) {
+    if ((size_t)(section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET) >
+        builder->table_data_capacity) {
         return PMT_BUILDER_SEND_STATUS_NOT_ENOUGHT_MEMORY;
     }
 

@@ -1,9 +1,9 @@
-#include <assert.h>
 #include <memory.h>
-#include <stdio.h>
 
-#include "mpegts/packet.h"
-#include "mpegts/packet_header.h"
+#include <mpegts/packet.h>
+#include <mpegts/packet_header.h>
+
+#include "runtime_assert.h"
 #include "test_data.h"
 
 static void parse_single_packet_test(void)

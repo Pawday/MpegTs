@@ -117,7 +117,7 @@ void mpeg_ts_dump_descriptors_json_to_stream(uint8_t *first_descriptor_location,
     for (size_t descriptor_index = 0; descriptor_index < descriptors_amount; descriptor_index++) {
 
         MpegTsDescriptor_t descriptor_to_dump = {0};
-        if (!mpeg_ts_psi_parse_descriptor_linked(&descriptor_to_dump,
+        if (!mpeg_ts_psi_parse_descriptor(&descriptor_to_dump,
                 first_descriptor_location + current_descriptor_data_offset,
                 data_length - current_descriptor_data_offset)) {
             break;

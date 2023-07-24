@@ -24,6 +24,12 @@ static bool find_first_sync_byte(size_t *output_byte_location_offset, const uint
     return true;
 }
 
+uint8_t *mpeg_ts_packet_get_payload(MpegTsPacket_t packet)
+{
+    uint8_t *packet_location = (uint8_t *)packet;
+    return packet_location + MPEG_TS_PACKET_HEADER_SIZE;
+}
+
 bool mpeg_ts_search_packet(MpegTsPacket_t *output_packet, const uint8_t *buffer, size_t buffer_size)
 {
     if (buffer_size < MPEG_TS_PACKET_SIZE) {

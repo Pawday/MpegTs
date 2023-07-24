@@ -1,7 +1,7 @@
 #include "descriptor.h"
 
-bool mpeg_ts_psi_parse_descriptor_linked(MpegTsDescriptor_t *output_descriptor,
-    const uint8_t *buffer, size_t buffer_size)
+bool mpeg_ts_psi_parse_descriptor(MpegTsDescriptor_t *output_descriptor, const uint8_t *buffer,
+    size_t buffer_size)
 {
     if (buffer_size < MPEG_TS_DESCRIPTOR_HEADER_SIZE) {
         return false;
@@ -15,7 +15,7 @@ bool mpeg_ts_psi_parse_descriptor_linked(MpegTsDescriptor_t *output_descriptor,
     }
 
     uint8_t descriptor_data_size = buffer[1];
-    if (buffer_size < descriptor_data_size + MPEG_TS_DESCRIPTOR_HEADER_SIZE) {
+    if (buffer_size < (size_t)(descriptor_data_size + MPEG_TS_DESCRIPTOR_HEADER_SIZE)) {
         return false;
     }
 
@@ -36,7 +36,7 @@ size_t mpeg_ts_psi_count_descriptors_in_buffer(const uint8_t *buffer, size_t buf
     while (last_descriptor_has_value && offset_in_buffer_to_next_descriptor < buffer_size) {
 
         MpegTsDescriptor_t next_descriptor;
-        if (!mpeg_ts_psi_parse_descriptor_linked(&next_descriptor,
+        if (!mpeg_ts_psi_parse_descriptor(&next_descriptor,
                 buffer + offset_in_buffer_to_next_descriptor,
                 buffer_size - offset_in_buffer_to_next_descriptor)) {
             break;
