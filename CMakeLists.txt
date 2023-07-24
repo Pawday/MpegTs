@@ -56,6 +56,6 @@ endif()
 option(MPEGTS_BUILD_TOOLS "Enable compiling mpegts tools" ON)
 if (MPEGTS_BUILD_TOOLS)
     message(NOTICE "[MpegTs]: building tools")
-    add_subdirectory(examples)
+    add_subdirectory(tools)
 endif()
 
