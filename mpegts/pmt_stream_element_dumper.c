@@ -39,7 +39,7 @@ void mpeg_ts_dump_stream_elements_to_stream(uint8_t *program_stream_elements_sta
     for (size_t element_index = 0; element_index < elements_amount; element_index++) {
 
         MpegTsElementStream_t element;
-        if (!mpeg_ts_parse_pmt_stream_element_linked(&element,
+        if (!mpeg_ts_parse_pmt_stream_element(&element,
                 program_stream_elements_start + current_element_data_offset,
                 program_elements_data_size - current_element_data_offset)) {
             break;

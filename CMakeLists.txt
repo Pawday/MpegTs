@@ -46,16 +46,36 @@ endif()
 
 add_subdirectory(mpegts)
 
-option(MPEGTS_ENABLE_TESTING "Enable compiling tests for mpegts library" ON)
+
+option(MPEGTS_TESTS_FUZZ "Enable LLVM fuzz target" OFF)
+
+option(MPEGTS_BUILD_TOOLS "Enable compiling mpegts tools" ON)
+option(MPEGTS_ENABLE_TESTING "Enable compiling tests for mpegts library" OFF)
+
+if (MPEGTS_TESTS_FUZZ AND MPEGTS_ENABLE_TESTING)
+    message(FATAL_ERROR "options MPEGTS_TESTS_FUZZ and MPEGTS_ENABLE_TESTING cannot coexist")
+endif()
+
+if (MPEGTS_TESTS_FUZZ AND MPEGTS_BUILD_TOOLS)
+    message(FATAL_ERROR "options MPEGTS_TESTS_FUZZ and MPEGTS_BUILD_TOOLS cannot coexist")
+endif()
+
+
+if (MPEGTS_TESTS_FUZZ)
+    message(NOTICE "[MpegTsTests] FUZZ")
+    add_subdirectory(fuzz)
+    return()
+endif()
+
 if (MPEGTS_ENABLE_TESTING)
     enable_testing()
     message(NOTICE "[MpegTs]: building tests")
     add_subdirectory(tests)
 endif()
 
-option(MPEGTS_BUILD_TOOLS "Enable compiling mpegts tools" ON)
 if (MPEGTS_BUILD_TOOLS)
     message(NOTICE "[MpegTs]: building tools")
     add_subdirectory(tools)
 endif()
+
 

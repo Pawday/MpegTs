@@ -320,7 +320,6 @@ bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_
     if (section_length >= MPEG_TS_PSI_PMT_SECTION_MAX_LENGTH) {
         return false;
     }
-    output_table->section_length = section_length;
 
     /*
      * table_data:
@@ -432,33 +431,39 @@ bool mpeg_ts_pmt_builder_try_build_table(MpegTsPMTBuilder_t *builder, MpegTsPMT_
      *     |
      *     +---- reserved
      */
-    output_table->program_info_length = 0;
 
-    output_table->program_info_length |=
+    uint16_t program_info_length = 0;
+    uint8_t *program_info_data = NULL;
+
+    program_info_length |=
         (table_data[10] & MPEG_TS_PSI_PMT_PROGRAM_INFO_LENGTH_MSB_MASK) << 8;
 
-    output_table->program_info_length |= table_data[11];
+    program_info_length |= table_data[11];
 
-    output_table->program_info_data = NULL;
-    if (output_table->program_info_length != 0) {
-        output_table->program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
+    if (program_info_length != 0) {
+        program_info_data = table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET;
     }
 
     uint8_t *elements_stream_data =
-        table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + output_table->program_info_length;
+        table_data + MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + program_info_length;
 
-    output_table->program_elements = elements_stream_data;
 
-    assert(output_table->section_length >
-           (MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET + output_table->program_info_length +
-               sizeof(output_table->CRC)));
+    if(section_length <= (MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET
+                              + program_info_length 
+                              + sizeof(output_table->CRC))) {
+        return false;
+    }
 
     uint16_t elements_stream_data_size =
-        output_table->section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET -
-        MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET - output_table->program_info_length -
+        section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET -
+        MPEG_TS_PSI_PMT_INFO_DESCRIPTORS_OFFSET - program_info_length -
         sizeof(output_table->CRC);
 
+    output_table->section_length = section_length;
+    output_table->program_info_length = program_info_length;
+    output_table->program_info_data = program_info_data;
     output_table->program_elements_length = elements_stream_data_size;
+    output_table->program_elements = elements_stream_data;
 
     uint16_t full_section_length = section_length + MPEG_TS_PSI_PMT_SECTION_LENGTH_OFFSET;
 

@@ -1,4 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
 #external test as if you are using this library
+
 
 set(MPEGTS_TESTS_USE_CUSTUM_ASSERT False)
 

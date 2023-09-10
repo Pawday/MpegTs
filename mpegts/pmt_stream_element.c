@@ -9,7 +9,7 @@ size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_s
     while (next_stream_element_offset < data_size) {
 
         MpegTsElementStream_t next_stream_element;
-        if (!mpeg_ts_parse_pmt_stream_element_linked(&next_stream_element,
+        if (!mpeg_ts_parse_pmt_stream_element(&next_stream_element,
                 element_stream_data + next_stream_element_offset,
                 data_size - next_stream_element_offset)) {
             break;
@@ -23,7 +23,7 @@ size_t mpeg_ts_count_stream_elements(uint8_t *element_stream_data, size_t data_s
     return element_stream_amount_so_far;
 }
 
-bool mpeg_ts_parse_pmt_stream_element_linked(MpegTsElementStream_t *output_element,
+bool mpeg_ts_parse_pmt_stream_element(MpegTsElementStream_t *output_element,
     uint8_t *element_stream_data, size_t data_size)
 {
 

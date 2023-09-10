@@ -33,7 +33,7 @@ typedef struct
 } MpegTsElementStream_t;
 
 
-bool mpeg_ts_parse_pmt_stream_element_linked(MpegTsElementStream_t *output_element,
+bool mpeg_ts_parse_pmt_stream_element(MpegTsElementStream_t *output_element,
     uint8_t *element_stream_data, size_t data_size);
 
 /*

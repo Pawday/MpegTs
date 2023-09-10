@@ -49,7 +49,7 @@ static void test_pmt_from_single_packet(void)
 
     MpegTsElementStream_t elements[2];
 
-    bool parse_el_1_status = mpeg_ts_parse_pmt_stream_element_linked(&elements[0],
+    bool parse_el_1_status = mpeg_ts_parse_pmt_stream_element(&elements[0],
         table.program_elements,
         table.program_elements_length);
     assert(parse_el_1_status);
@@ -57,7 +57,7 @@ static void test_pmt_from_single_packet(void)
     size_t second_stream_element_offset =
         elements[0].es_info_length + MPEG_TS_PSI_PMT_STREAM_ELEMENT_DESCRIPTORS_OFFSET;
 
-    bool parse_el_2_status = mpeg_ts_parse_pmt_stream_element_linked(&elements[1],
+    bool parse_el_2_status = mpeg_ts_parse_pmt_stream_element(&elements[1],
         table.program_elements + second_stream_element_offset,
         table.program_elements_length - second_stream_element_offset);
     assert(parse_el_2_status);
