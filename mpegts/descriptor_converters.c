@@ -144,7 +144,7 @@ MpegTsDescriptorTag_e mpeg_ts_num_to_descriptor_tag(uint8_t descriptor_tag_as_in
         return TELETEXT_DESCRIPTOR;
     }
 
-    assert(descriptor_tag_as_int >= 0x57 && descriptor_tag_as_int <= 0xFF);
+    assert(descriptor_tag_as_int >= 0x57);
 
     return MPEG_DESCRIPTOR_USER_PRIVATE;
 }

@@ -112,7 +112,7 @@ MpegTsStreamType_e mpeg_ts_int_to_stream_type(uint8_t type)
         return IPMP_STREAM;
     }
 
-    assert(type >= 0x80 && type <= 0xFF);
+    assert(type >= 0x80);
 
     return STREAM_TYPE_USER_PRIVATE;
 }

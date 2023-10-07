@@ -20,7 +20,7 @@ MpegTsLanguageDescriptorAudioType_e mpeg_ts_language_descriptor_audio_type_from_
         return MPEGTS_AUDIO_TYPE_USER_PRIVATE;
     }
 
-    assert(num >= 0x80 && num <= 0xFF);
+    assert(num >= 0x80);
 
     return MPEGTS_AUDIO_TYPE_RESERVED;
 }
