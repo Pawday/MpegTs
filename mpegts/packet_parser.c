@@ -64,16 +64,20 @@ size_t mpeg_ts_search_packets(const uint8_t *buffer, size_t buffer_size,
 {
     size_t packets_parsed_so_far = 0;
     size_t next_packet_location_offset = 0;
+    size_t sync_byte_for_next_packet = 0;
 
-    while (
-        packets_parsed_so_far < packets_array_size && next_packet_location_offset < buffer_size) {
+    while (packets_parsed_so_far < packets_array_size && next_packet_location_offset < buffer_size) {
 
-        size_t next_packet_offset_related = 0;
-        if (!find_first_sync_byte(&next_packet_offset_related,
+        if (!find_first_sync_byte(&sync_byte_for_next_packet,
                 buffer + next_packet_location_offset,
                 buffer_size - next_packet_location_offset)) {
             break;
         }
+
+        if (sync_byte_for_next_packet != 0 && next_packet_location_offset + sync_byte_for_next_packet >= buffer_size) {
+            break;
+        }
+        next_packet_location_offset += sync_byte_for_next_packet;
 
         MpegTsPacket_t next_packet = NULL;
         bool is_next_packet_parsed = mpeg_ts_search_packet(&next_packet,
