@@ -80,11 +80,13 @@ size_t mpeg_ts_search_packets(const uint8_t *buffer, size_t buffer_size,
             buffer + next_packet_location_offset,
             buffer_size - next_packet_location_offset);
 
-        next_packet_location_offset += MPEG_TS_PACKET_SIZE;
-
         if (!is_next_packet_parsed) {
+            next_packet_location_offset++;
             continue;
         }
+
+        next_packet_location_offset += MPEG_TS_PACKET_SIZE;
+
 
         packets_array[packets_parsed_so_far] = next_packet;
         packets_parsed_so_far++;

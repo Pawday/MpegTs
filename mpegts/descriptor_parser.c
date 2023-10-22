@@ -1,7 +1,6 @@
 #include "descriptor.h"
 
-bool mpeg_ts_psi_parse_descriptor(MpegTsDescriptor_t *output_descriptor, const uint8_t *buffer,
-    size_t buffer_size)
+bool mpeg_ts_psi_parse_descriptor(MpegTsDescriptor_t *output_descriptor, const uint8_t *buffer, size_t buffer_size)
 {
     if (buffer_size < MPEG_TS_DESCRIPTOR_HEADER_SIZE) {
         return false;
